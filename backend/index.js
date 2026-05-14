@@ -226,4 +226,14 @@ app.listen(PORT, () => {
   mongoose.connect(uri).catch((err) => {
     console.error("DB connection failed:", err.message);
   });
+  // mongoose.connect(uri)
+  // .then(() => {
+  //   app.listen(PORT, () => {
+  //     console.log("App started and connected to DB!");
+  //   });
+  // })
+  // .catch((err) => {
+  //   console.error("DB connection failed:", err.message);
+  //   process.exit(1); // don't start server without DB
+  // });
 });
