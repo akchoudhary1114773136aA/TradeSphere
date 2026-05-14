@@ -5,18 +5,28 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-const { HoldingsModel } = require("./model/HoldingsModel");
+const { HoldingsModel } = require("./models/HoldingsModel");
 
-const { PositionsModel } = require("./model/PositionsModel");
-const { OrdersModel } = require("./model/OrdersModel");
+const { PositionsModel } = require("./models/PositionsModel");
+const { OrdersModel } = require("./models/OrdersModel");
 
 const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGO_URL;
 
+const authRoutes = require("./routes/authRoutes");
+
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000", "http://localhost:3001"]
+}));
 app.use(bodyParser.json());
+
+app.use("/api/auth", authRoutes);
+
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
 // app.get("/addHoldings", async (req, res) => {
 //   let tempHoldings = [
