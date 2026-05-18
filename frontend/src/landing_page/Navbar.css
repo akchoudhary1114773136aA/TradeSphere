@@ -1,0 +1,145 @@
+.navbar-tradesphere {
+  background-color: #0f172a;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo img {
+  height: 30px;
+  width: auto;
+}
+
+.navbar-logo a {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-menu {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  margin-left: auto;
+  padding: 0;
+  gap: 1rem;
+  align-items: center;
+}
+
+.navbar-menu li {
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-link {
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+  display: block;
+}
+
+.navbar-link,
+.navbar-logo,
+.navbar-menu,
+.navbar-hamburger {
+  color: #e2e8f0;
+}
+
+.navbar-link:hover,
+.navbar-link:focus {
+  color: #ffffff;
+}
+
+.navbar-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+
+/* Hamburger Menu */
+.navbar-hamburger {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+  padding: 8px;
+  margin-left: auto;
+}
+
+.navbar-hamburger .line {
+  width: 24px;
+  height: 3px;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+  transition: all 0.3s ease-in-out;
+}
+
+.navbar-hamburger .line.active:nth-child(1) {
+  transform: rotate(45deg) translate(9px, 9px);
+}
+
+.navbar-hamburger .line.active:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-hamburger .line.active:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile and Desktop Menu Toggle */
+@media (max-width: 1024px) {
+  .navbar-menu {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background-color: #0f172a;
+    gap: 0;
+    margin: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  .navbar-menu.active {
+    max-height: 400px;
+  }
+
+  .navbar-menu li {
+    width: 100%;
+  }
+
+  .navbar-link {
+    padding: 1rem;
+    border-radius: 0;
+    width: 100%;
+  }
+
+  .navbar-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+

@@ -20,8 +20,8 @@ function Hero() {
             We kick-started operations on the 15th of August, 2010 with the goal
             of breaking all barriers that traders and investors face in India in
             terms of cost, support, and technology. We named the company
-            Zerodha, a combination of Zero and "Rodha", the Sanskrit word for
-            barrier.
+            TradeSphere, a combination of Trade and "Sphere", to represent an
+            open marketplace for traders and investors.
           </p>
           <p>
             Today, our disruptive pricing models and in-house technology have
