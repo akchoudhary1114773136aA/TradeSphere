@@ -7,7 +7,7 @@
 .tradehero-card {
   background: linear-gradient(135deg, #1f2e55 0%, #233258 100%);
   border-radius: 28px;
-  color: white;
+  color: #f8fbff;
   padding: 1.8rem;
   box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
 }
@@ -56,7 +56,7 @@
 .tradehero-range-btn {
   border: 1px solid rgba(255, 255, 255, 0.4);
   background: transparent;
-  color: #fff;
+  color: #edf4ff;
   border-radius: 999px;
   padding: 0.65rem 1rem;
   font-size: 0.9rem;
@@ -93,7 +93,7 @@
 
 .tradehero-change {
   margin: 0.8rem 0 0.25rem;
-  color: #d7ffd1;
+  color: var(--success);
   font-weight: 600;
 }
 
@@ -154,7 +154,7 @@
   border-radius: 20px;
   padding: 1.25rem 1.35rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-  color: #e7eefc;
+  color: var(--text);
 }
 
 .tradehero-card-small .card-title {
@@ -163,23 +163,23 @@
   opacity: 0.75;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--muted);
 }
 
 .tradehero-card-small .card-value {
   margin: 0.7rem 0 0.25rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #f8fbff;
+  color: var(--heading);
 }
 
 .tradehero-card-small .card-change {
-  color: #3da76d;
+  color: var(--success);
   font-weight: 600;
 }
 
 .tradehero-card-small.negative .card-change {
-  color: #e35c69;
+  color: var(--danger);
 }
 
 .tradehero-card-small .chart-strip {
@@ -200,7 +200,7 @@
   background: #101d34;
   border-radius: 18px;
   padding: 1.3rem;
-  color: #e7eefc;
+  color: var(--text);
 }
 
 .tradehero-info-card .info-label {
