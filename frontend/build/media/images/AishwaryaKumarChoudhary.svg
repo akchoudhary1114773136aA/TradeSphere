@@ -1,0 +1,9 @@
+<svg width="600" height="600" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" rx="120" fill="#0F172A"/>
+  <circle cx="300" cy="220" r="140" fill="#1E293B"/>
+  <path d="M150 510C150 403.544 224.544 329 331 329H269C375.456 329 450 403.544 450 510H150Z" fill="#1E293B"/>
+  <text x="300" y="250" text-anchor="middle" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="120" font-weight="700">AK</text>
+  <text x="300" y="340" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="42" font-weight="600">Aishwarya</text>
+  <text x="300" y="390" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="42" font-weight="600">Kumar</text>
+  <text x="300" y="440" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="42" font-weight="600">Choudhary</text>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <circle cx="80" cy="80" r="72" fill="#EAF3FF"/>
+  <circle cx="80" cy="80" r="60" fill="white"/>
+  <text x="80" y="68" font-family="Arial Black,Arial,sans-serif" font-size="32" font-weight="bold" fill="#387ED1" text-anchor="middle">&#x20B9;0</text>
+  <text x="80" y="90" font-family="Arial,sans-serif" font-size="11" fill="#555" text-anchor="middle">Equity Delivery</text>
+  <text x="80" y="108" font-family="Arial,sans-serif" font-size="10" fill="#27AE60" text-anchor="middle">Zero Brokerage</text>
+</svg>
