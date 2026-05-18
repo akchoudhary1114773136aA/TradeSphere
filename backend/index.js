@@ -16,6 +16,8 @@ const uri = process.env.MONGO_URL;
 const authRoutes = require("./routes/authRoutes");
 const stockRoutes = require("./routes/stockRoutes");
 const tradeRoutes = require("./routes/tradeRoutes");
+const portfolioRoutes = require("./routes/portfolioRoutes");
+const { runSeed } = require("./seed");
 
 const app = express();
 
@@ -27,6 +29,7 @@ app.use(bodyParser.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/stocks", stockRoutes);
 app.use("/api/trade", tradeRoutes);
+app.use("/api/portfolio", portfolioRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
@@ -237,6 +240,7 @@ app.post("/newOrder", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log("App started!");
+  mongoose.connection.once('open', () => { runSeed(); });
   mongoose.connect(uri).catch((err) => {
     console.error("DB connection failed:", err.message);
   });
