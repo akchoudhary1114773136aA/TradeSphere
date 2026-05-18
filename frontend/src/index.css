@@ -146,6 +146,11 @@ hr {
   border-color: var(--border) !important;
 }
 
+.content-image {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
 footer p:first-child,
 footer .col > p:first-child {
   color: var(--heading);

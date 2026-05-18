@@ -13,18 +13,24 @@ function Team() {
       >
         <div className="col-6 p-3 text-center">
           <img
-            src="media/images/AishwaryaKumarChoudhary.svg"
+            src="media/images/aishwarya.jpeg"
             alt="Aishwarya Kumar Choudhary"
-            style={{ borderRadius: "100%", width: "50%" }}
+            style={{
+              borderRadius: "100%",
+              width: "50%",
+              aspectRatio: "1 / 1",
+              objectFit: "cover",
+            }}
           />
           <h4 className="mt-5">Aishwarya Kumar Choudhary</h4>
           <h6>Founder, CEO</h6>
         </div>
         <div className="col-6 p-3">
           <p>
-            Nithin bootstrapped and founded TradeSphere in 2010 to overcome the
-            hurdles he faced during his decade long stint as a trader. Today,
-            TradeSphere has changed the landscape of the Indian broking industry.
+            Aishwarya Kumar Choudhary bootstrapped and founded TradeSphere in
+            2010 to overcome the hurdles he faced during his decade long stint
+            as a trader. Today, TradeSphere has changed the landscape of the
+            Indian broking industry.
           </p>
           <p>
             He is a member of the SEBI Secondary Market Advisory Committee
