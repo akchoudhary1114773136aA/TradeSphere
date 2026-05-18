@@ -2,9 +2,9 @@ const { Schema } = require("mongoose");
 
 const PositionsSchema = new Schema({
   product: String,
-  name: String,
-  qty: Number,
-  avg: Number,
+  stockSymbol: String,
+  quantity: Number,
+  averagePrice: Number,
   price: Number,
   net: String,
   day: String,
