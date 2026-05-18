@@ -14,6 +14,8 @@ const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGO_URL;
 
 const authRoutes = require("./routes/authRoutes");
+const stockRoutes = require("./routes/stockRoutes");
+const tradeRoutes = require("./routes/tradeRoutes");
 
 const app = express();
 
@@ -23,6 +25,8 @@ app.use(cors({
 app.use(bodyParser.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/stocks", stockRoutes);
+app.use("/api/trade", tradeRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
