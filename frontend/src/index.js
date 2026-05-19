@@ -1,9 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./index.css";
+
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 import HomePage from "./landing_page/home/HomePage";
 import Signup from "./landing_page/signup/Signup";
@@ -16,10 +20,17 @@ import NotFound from "./landing_page/NotFound";
 import Navbar from "./landing_page/Navbar";
 import Footer from "./landing_page/Footer";
 
+AOS.init({
+  duration: 1000,
+  once: true,
+});
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
+
 root.render(
   <BrowserRouter>
     <Navbar />
+
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/signup" element={<Signup />} />
@@ -29,6 +40,13 @@ root.render(
       <Route path="/support" element={<SupportPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+
     <Footer />
   </BrowserRouter>
 );
+
+AOS.init({
+  duration: 1200,
+  easing: "ease-in-out",
+  once: true,
+});

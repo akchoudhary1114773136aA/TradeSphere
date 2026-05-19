@@ -3,17 +3,34 @@ import React from "react";
 function Awards() {
   return (
     <div className="container mt-5">
-      <div className="row">
-        <div className="col-6 p-5">
-          <img className="content-image" src="media/images/largestBroker.svg" />
+      <div className="row align-items-center">
+
+        <div
+          className="col-6 p-5"
+          data-aos="fade-up"
+        >
+          <img
+            className="content-image"
+            src="media/images/largestBroker.svg"
+            alt="Largest Broker"
+          />
         </div>
-        <div className="col-6 p-5 mt-5">
+
+        <div
+          className="col-6 p-5 mt-5"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
           <h1>Largest stock broker in India</h1>
+
           <p className="mb-5">
-            2+ million TradeSphere clients contribute to over 15% of all retail
-            order volumes in India daily by trading and investing in:
+            2+ million TradeSphere clients contribute to over
+            15% of all retail order volumes in India daily by
+            trading and investing in:
           </p>
+
           <div className="row">
+
             <div className="col-6">
               <ul>
                 <li>
@@ -27,6 +44,7 @@ function Awards() {
                 </li>
               </ul>
             </div>
+
             <div className="col-6">
               <ul>
                 <li>
@@ -40,8 +58,10 @@ function Awards() {
                 </li>
               </ul>
             </div>
+
           </div>
         </div>
+
       </div>
     </div>
   );
