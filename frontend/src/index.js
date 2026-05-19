@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -20,6 +20,23 @@ import NotFound from "./landing_page/NotFound";
 import Navbar from "./landing_page/Navbar";
 import Footer from "./landing_page/Footer";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  React.useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+    requestAnimationFrame(() => {
+      document
+        .querySelectorAll("[data-aos]")
+        .forEach((element) => element.classList.remove("aos-animate"));
+      AOS.refreshHard();
+    });
+  }, [pathname]);
+
+  return null;
+}
+
 AOS.init({
   duration: 1000,
   once: true,
@@ -29,6 +46,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <BrowserRouter>
+    <ScrollToTop />
     <Navbar />
 
     <Routes>

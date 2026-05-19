@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Funds = () => {
   return (
-    <>
+    <div className="funds-page">
       <div className="funds">
         <p>Instant, zero-cost fund transfers with UPI </p>
         <Link className="btn btn-green">Add funds</Link>
@@ -81,7 +81,7 @@ const Funds = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

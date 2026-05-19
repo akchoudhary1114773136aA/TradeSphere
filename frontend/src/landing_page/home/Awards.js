@@ -2,22 +2,22 @@ import React from "react";
 
 function Awards() {
   return (
-    <div className="container mt-5">
+    <section className="home-section home-split-section">
       <div className="row align-items-center">
 
         <div
-          className="col-6 p-5"
+          className="col-lg-6 p-4 p-lg-5"
           data-aos="fade-up"
         >
           <img
             className="content-image"
-            src="media/images/largestBroker.svg"
-            alt="Largest Broker"
+            src="media/images/home-broker-dashboard.svg"
+            alt="Trading dashboard illustration"
           />
         </div>
 
         <div
-          className="col-6 p-5 mt-5"
+          className="col-lg-6 p-4 p-lg-5"
           data-aos="fade-up"
           data-aos-delay="200"
         >
@@ -63,7 +63,7 @@ function Awards() {
         </div>
 
       </div>
-    </div>
+    </section>
   );
 }
 

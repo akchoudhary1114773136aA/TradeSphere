@@ -5,5 +5,15 @@ import { Doughnut } from "react-chartjs-2";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export function DoughnutChart({ data }) {
-  return <Doughnut data={data} />;
+  const options = {
+    plugins: {
+      legend: {
+        labels: {
+          color: "#B6C2D1",
+        },
+      },
+    },
+  };
+
+  return <Doughnut data={data} options={options} />;
 }

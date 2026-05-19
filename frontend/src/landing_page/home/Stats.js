@@ -2,11 +2,11 @@ import React from "react";
 
 function Stats() {
   return (
-    <div className="container p-3">
-      <div className="row p-5">
+    <section className="home-section home-stats-section">
+      <div className="row align-items-center">
 
         <div
-          className="col-6 p-5"
+          className="col-lg-6 p-4 p-lg-5"
           data-aos="fade-up"
         >
           <h1 className="fs-2 mb-5">
@@ -59,20 +59,20 @@ function Stats() {
         </div>
 
         <div
-          className="col-6 p-5"
+          className="col-lg-6 p-4 p-lg-5 text-center"
           data-aos="fade-up"
           data-aos-delay="500"
         >
           <img
             className="content-image"
-            src="media/images/ecosystem.png"
-            style={{ width: "90%" }}
-            alt="Ecosystem"
+            src="media/images/home-trading-ecosystem.svg"
+            style={{ width: "92%" }}
+            alt="Trading ecosystem illustration"
           />
         </div>
 
       </div>
-    </div>
+    </section>
   );
 }
 

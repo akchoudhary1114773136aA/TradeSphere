@@ -1,7 +1,5 @@
 import React, { useState, useContext } from "react";
 
-import axios from "axios";
-
 import GeneralContext from "./GeneralContext";
 
 import { Tooltip, Grow } from "@mui/material";
@@ -26,20 +24,20 @@ const WatchList = () => {
         label: "Price",
         data: watchlist.map((stock) => stock.price),
         backgroundColor: [
-          "rgba(255, 99, 132, 0.5)",
-          "rgba(54, 162, 235, 0.5)",
-          "rgba(255, 206, 86, 0.5)",
-          "rgba(75, 192, 192, 0.5)",
-          "rgba(153, 102, 255, 0.5)",
-          "rgba(255, 159, 64, 0.5)",
+          "rgba(18, 214, 167, 0.62)",
+          "rgba(77, 141, 255, 0.62)",
+          "rgba(255, 138, 61, 0.62)",
+          "rgba(255, 92, 122, 0.62)",
+          "rgba(182, 194, 209, 0.46)",
+          "rgba(123, 220, 255, 0.58)",
         ],
         borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(75, 192, 192, 1)",
-          "rgba(153, 102, 255, 1)",
-          "rgba(255, 159, 64, 1)",
+          "rgba(18, 214, 167, 1)",
+          "rgba(77, 141, 255, 1)",
+          "rgba(255, 138, 61, 1)",
+          "rgba(255, 92, 122, 1)",
+          "rgba(182, 194, 209, 0.9)",
+          "rgba(123, 220, 255, 0.95)",
         ],
         borderWidth: 1,
       },
@@ -92,7 +90,9 @@ const WatchList = () => {
         })}
       </ul>
 
-      <DoughnutChart data={data} />
+      <div className="watchlist-chart">
+        <DoughnutChart data={data} />
+      </div>
     </div>
   );
 };
@@ -119,7 +119,7 @@ const WatchListItem = ({ stock }) => {
           {stock.isDown ? (
             <KeyboardArrowDown className="down" />
           ) : (
-            <KeyboardArrowUp className="down" />
+            <KeyboardArrowUp className="up" />
           )}
           <span className="price">{stock.price}</span>
         </div>

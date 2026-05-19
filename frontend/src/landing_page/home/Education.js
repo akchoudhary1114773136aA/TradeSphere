@@ -2,20 +2,20 @@ import React from "react";
 
 function Education() {
   return (
-    <div className="container mt-5">
+    <section className="home-section home-education-section">
       <div className="row align-items-center">
 
-        <div className="col-6" data-aos="fade-up">
+        <div className="col-lg-6 text-center" data-aos="fade-up">
           <img
             className="content-image"
-            src="media/images/education.svg"
-            style={{ width: "70%" }}
-            alt="Education"
+            src="media/images/home-learning-lab.svg"
+            style={{ width: "86%" }}
+            alt="Market education illustration"
           />
         </div>
 
         <div
-          className="col-6"
+          className="col-lg-6"
           data-aos="fade-up"
           data-aos-delay="200"
         >
@@ -52,7 +52,7 @@ function Education() {
         </div>
 
       </div>
-    </div>
+    </section>
   );
 }
 

@@ -6,8 +6,12 @@ import Team from "./Team";
 function PricingPage() {
   return (
     <>
-      <Hero />
-      <Team />
+      <div data-aos="fade-up">
+        <Hero />
+      </div>
+      <div data-aos="fade-up" data-aos-delay="200">
+        <Team />
+      </div>
     </>
   );
 }

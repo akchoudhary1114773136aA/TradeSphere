@@ -1,8 +1,8 @@
 .container {
-    --radius: 4px;
+    --radius: 14px;
     width: 40%;
     height: 63%;
-    background: rgb(245, 245, 245);
+    background: var(--bg-primary);
     position: absolute;
     bottom: 0;
     left: 35%;
@@ -10,7 +10,8 @@
     box-sizing: border-box;
     z-index: 100;
     border-radius: var(--radius);
-    border: 1px solid rgb(238, 238, 238);
+    border: 1.5px solid var(--border);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
   }
   
   .dragging {
@@ -19,7 +20,7 @@
   
   .container .header {
     width: 100%;
-    background: #4184f3;
+    background: linear-gradient(135deg, #112036, #162A45);
     box-sizing: border-box;
     padding: 16px;
     border-top-left-radius: var(--radius);
@@ -27,7 +28,7 @@
   }
   
   .header h3 {
-    color: #fff;
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 500;
     margin-bottom: 6px;
@@ -39,7 +40,7 @@
   
   .market-options {
     font-weight: 300;
-    color: #fff;
+    color: var(--text-secondary);
     font-size: 0.8rem;
   }
   
@@ -54,7 +55,7 @@
   }
   
   .market-options input[type="radio"] {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border);
     cursor: pointer;
     padding: 2px;
     margin-right: 6px;
@@ -63,15 +64,15 @@
   .tab {
     width: 100%;
     box-sizing: border-box;
-    background-color: #f9f9f9;
-    border-bottom: 2px solid rgba(180, 180, 180, 0.6);
+    background-color: var(--bg-secondary);
+    border-bottom: 2px solid var(--border);
   }
   
   .tab button {
     border: none;
     padding: 14px 16px;
     background: transparent;
-    color: #4184f3;
+    color: var(--accent-blue);
     font-weight: 400;
     font-size: 0.8rem;
     cursor: pointer;
@@ -79,7 +80,7 @@
   
   .regular-order {
     padding: 16px 26px;
-    background-color: #fff;
+    background-color: var(--bg-primary);
     padding-bottom: 30px;
   }
   
@@ -96,7 +97,7 @@
   }
   
   .order-validity label span {
-    color: rgb(190, 190, 190);
+    color: var(--text-muted);
   }
   
   .inputs {
@@ -110,7 +111,9 @@
   .inputs fieldset {
     max-width: 120px;
     box-sizing: border-box;
-    border: 0.7px solid #ddd;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg-secondary);
     margin-right: 8px;
   }
   
@@ -121,11 +124,13 @@
   }
   
   .inputs fieldset:last-of-type legend {
-    color: #ddd;
+    color: var(--text-muted);
   }
   
   .inputs fieldset input {
     border: none;
+    background: transparent;
+    color: var(--text-primary);
     margin-right: 8px;
     max-width: 130px;
     min-height: 35px;
@@ -143,7 +148,7 @@
   }
   
   .options span {
-    color: #4184f3;
+    color: var(--accent-teal);
     font-size: 0.8rem;
     cursor: pointer;
   }
@@ -161,6 +166,7 @@
   
   .buttons span {
     font-size: 0.8rem;
+    color: var(--text-muted);
   }
   
   .btn {
@@ -173,12 +179,13 @@
   }
   
   .btn-grey {
-    background: #d4d4d4;
-    color: #666666;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border);
   }
   
   .btn-blue {
-    background: #4184f3;
+    background: linear-gradient(135deg, var(--accent-blue), #6AA2FF);
   }
   
   /* sudo selectors */
@@ -188,13 +195,13 @@
     height: 3px;
     display: none;
     margin-top: 10px;
-    background-color: #4184f3;
+    background-color: var(--accent-teal);
   }
   
   .inputs fieldset:focus {
     outline: none;
-    border: 0.7px solid rgb(49, 49, 49);
-    border-radius: 2px;
+    border: 1.5px solid var(--accent-teal);
+    border-radius: 7px;
   }
   
   .inputs fieldset input:focus {
@@ -211,11 +218,11 @@
   }
   
   .btn-blue:hover {
-    background: #74a7fa;
+    background: linear-gradient(135deg, #6AA2FF, var(--accent-blue));
   }
   
   .btn-grey:hover {
-    background: #9b9b9b;
-    color: #fff;
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
   

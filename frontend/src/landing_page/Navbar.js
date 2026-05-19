@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import "./Navbar.css";
 
 function Navbar() {
@@ -9,46 +9,58 @@ function Navbar() {
     setMenuOpen(!menuOpen);
   };
 
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
+
+  const navItems = [
+    { label: "Home", path: "/" },
+    { label: "About", path: "/about" },
+    { label: "Products", path: "/product" },
+    { label: "Pricing", path: "/pricing" },
+    { label: "Support", path: "/support" },
+  ];
+
   return (
     <nav className="navbar-tradesphere">
       <div className="navbar-container">
         <div className="navbar-logo">
-          <Link to="/">
+          <Link to="/" onClick={closeMenu}>
             <img src="media/images/logo.svg" alt="Logo" />
           </Link>
         </div>
         <ul className={`navbar-menu ${menuOpen ? "active" : ""}`}>
-          <li>
-            <Link to="/" className="navbar-link">
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link to="/about" className="navbar-link">
-              About
-            </Link>
-          </li>
-          <li>
-            <Link to="/product" className="navbar-link">
-              Products
-            </Link>
-          </li>
-          <li>
-            <Link to="/pricing" className="navbar-link">
-              Pricing
-            </Link>
-          </li>
-          <li>
-            <Link to="/support" className="navbar-link">
-              Support
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <NavLink
+                to={item.path}
+                end={item.path === "/"}
+                className={({ isActive }) =>
+                  isActive ? "navbar-link active" : "navbar-link"
+                }
+                onClick={closeMenu}
+              >
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+          <li className="navbar-actions">
+            <Link to="/signup" className="navbar-cta" onClick={closeMenu}>
+              Sign up
             </Link>
           </li>
         </ul>
-        <div className="navbar-hamburger" onClick={toggleMenu}>
+        <button
+          className="navbar-hamburger"
+          type="button"
+          onClick={toggleMenu}
+          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={menuOpen}
+        >
           <span className={menuOpen ? "line active" : "line"}></span>
           <span className={menuOpen ? "line active" : "line"}></span>
           <span className={menuOpen ? "line active" : "line"}></span>
-        </div>
+        </button>
       </div>
     </nav>
   );

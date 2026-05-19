@@ -2,11 +2,11 @@ import React from "react";
 
 function Pricing() {
   return (
-    <div className="container">
+    <section className="home-section home-pricing-section">
       <div className="row align-items-center">
 
         <div
-          className="col-4"
+          className="col-lg-4"
           data-aos="fade-up"
         >
           <h1 className="mb-3 fs-2">
@@ -28,17 +28,17 @@ function Pricing() {
           </a>
         </div>
 
-        <div className="col-2"></div>
+        <div className="col-lg-1"></div>
 
         <div
-          className="col-6 mb-5"
+          className="col-lg-7"
           data-aos="fade-up"
           data-aos-delay="200"
         >
           <div className="row text-center">
 
             <div
-              className="col p-3 border"
+              className="col p-4 home-price-card"
               data-aos="fade-up"
               data-aos-delay="300"
             >
@@ -52,7 +52,7 @@ function Pricing() {
             </div>
 
             <div
-              className="col p-3 border"
+              className="col p-4 home-price-card"
               data-aos="fade-up"
               data-aos-delay="400"
             >
@@ -64,7 +64,7 @@ function Pricing() {
         </div>
 
       </div>
-    </div>
+    </section>
   );
 }
 

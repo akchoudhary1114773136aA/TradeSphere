@@ -19,7 +19,15 @@ const Menu = () => {
 
   return (
     <div className="menu-container">
-      <img src="logo.png" style={{ width: "50px" }} />
+     <img
+  src="logo.svg"
+  alt="Logo"
+  style={{
+    width: "140px",
+    height: "auto",
+    objectFit: "contain",
+  }}
+/>
       <div className="menus">
         <ul>
           <li>
@@ -98,5 +106,7 @@ const Menu = () => {
     </div>
   );
 };
+
+
 
 export default Menu;

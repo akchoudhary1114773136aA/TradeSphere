@@ -1,15 +1,19 @@
 .tradehero {
-  margin: 2rem auto;
+  margin: 2rem auto 3.5rem;
   max-width: 1200px;
   padding: 0 1rem;
 }
 
 .tradehero-card {
-  background: linear-gradient(135deg, #1f2e55 0%, #233258 100%);
+  background:
+    radial-gradient(circle at top right, rgba(18, 214, 167, 0.22), transparent 24rem),
+    linear-gradient(135deg, #14213f 0%, #24345d 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 28px;
   color: #f8fbff;
-  padding: 1.8rem;
+  padding: 2rem;
   box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
+  animation: heroGlow 8s ease-in-out infinite alternate;
 }
 
 .tradehero-header {
@@ -32,11 +36,13 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(135deg, #12d6a7, #63a7ff);
+  color: #061018;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .tradehero-live {
@@ -61,12 +67,14 @@
   padding: 0.65rem 1rem;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
 .tradehero-range-btn:hover,
 .tradehero-range-btn.active {
   background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(18, 214, 167, 0.65);
+  transform: translateY(-1px);
 }
 
 .tradehero-main {
@@ -95,6 +103,10 @@
   margin: 0.8rem 0 0.25rem;
   color: var(--success);
   font-weight: 600;
+}
+
+.tradehero-change.negative {
+  color: var(--danger);
 }
 
 .tradehero-sub {
@@ -129,6 +141,12 @@
   height: 100%;
 }
 
+.tradehero-chart-line path {
+  stroke-dasharray: 620;
+  stroke-dashoffset: 620;
+  animation: drawLine 1s ease forwards;
+}
+
 .tradehero-chart-legend {
   display: flex;
   justify-content: space-between;
@@ -150,11 +168,31 @@
 }
 
 .tradehero-card-small {
-  background: #111f3f;
+  background: rgba(16, 29, 52, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 20px;
   padding: 1.25rem 1.35rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
   color: var(--text);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+}
+
+.tradehero-card-small:hover,
+.tradehero-card-small:focus {
+  transform: translateY(-8px);
+  border-color: rgba(18, 214, 167, 0.46);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  outline: none;
+}
+
+.tradehero-card-small.selected {
+  background:
+    linear-gradient(135deg, rgba(18, 214, 167, 0.16), rgba(99, 167, 255, 0.10)),
+    rgba(16, 29, 52, 0.96);
+  border-color: rgba(18, 214, 167, 0.62);
 }
 
 .tradehero-card-small .card-title {
@@ -187,6 +225,18 @@
   height: 5px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(0,0,0,0.08) 0%, rgba(60,130,245,0.45) 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+.tradehero-card-small .chart-strip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.72);
+  animation: stripPulse 2.2s ease-in-out infinite;
 }
 
 .tradehero-info {
@@ -197,10 +247,56 @@
 }
 
 .tradehero-info-card {
-  background: #101d34;
+  background: rgba(16, 29, 52, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 18px;
   padding: 1.3rem;
   color: var(--text);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tradehero-info-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(99, 167, 255, 0.34);
+}
+
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes stripPulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  55%,
+  100% {
+    transform: translateX(230%);
+  }
+}
+
+@keyframes heroGlow {
+  from {
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
+  }
+  to {
+    box-shadow: 0 30px 70px rgba(18, 214, 167, 0.12), 0 26px 60px rgba(0, 0, 0, 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tradehero-card,
+  .tradehero-chart-line path,
+  .tradehero-card-small .chart-strip::after {
+    animation: none;
+  }
+
+  .tradehero-card-small:hover,
+  .tradehero-card-small:focus,
+  .tradehero-info-card:hover {
+    transform: none;
+  }
 }
 
 .tradehero-info-card .info-label {

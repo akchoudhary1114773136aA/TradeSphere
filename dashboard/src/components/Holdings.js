@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios, { all } from "axios";
+import axios from "axios";
 import { VerticalGraph } from "./VerticalGraph";
 
 // import { holdings } from "../data/data";
@@ -23,7 +23,9 @@ const Holdings = () => {
       {
         label: "Stock Price",
         data: allHoldings.map((stock) => stock.price),
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
+        backgroundColor: "rgba(18, 214, 167, 0.58)",
+        borderColor: "rgba(18, 214, 167, 0.9)",
+        borderWidth: 1,
       },
     ],
   };

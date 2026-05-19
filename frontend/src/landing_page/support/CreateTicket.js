@@ -40,15 +40,15 @@ function CreateTicket() {
   ];
 
   return (
-    <div className="container">
-      <div className="row p-5 mt-5 mb-5">
-
+    <div className="support-ticket-section">
+      <div className="support-ticket-inner">
         <h1 className="fs-2 mb-4">
           To create a ticket, select a relevant topic
         </h1>
 
+        <div className="support-topic-grid">
         {topics.map((section, index) => (
-          <div className="col-4 p-4 mt-2 mb-2" key={index}>
+          <div className="support-topic-card" key={index}>
             
             <h4>
               <i className="fa fa-plus-circle" aria-hidden="true"></i>{" "}
@@ -68,7 +68,7 @@ function CreateTicket() {
 
           </div>
         ))}
-
+        </div>
       </div>
     </div>
   );
