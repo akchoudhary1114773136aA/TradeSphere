@@ -1150,8 +1150,9 @@ hr {
   background: rgba(4, 10, 20, 0.78);
   backdrop-filter: blur(12px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 100px;
   z-index: 9999;
   animation: fadeIn 0.25s ease both;
 }

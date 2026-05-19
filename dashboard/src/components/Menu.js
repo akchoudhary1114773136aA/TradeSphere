@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { getMe, updateProfile } from "../api";
 
@@ -55,7 +56,11 @@ const Menu = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("stockly_token");
-    window.location.href = "http://localhost:3000/login";
+    try {
+      window.top.location.href = "http://localhost:3000/login";
+    } catch (e) {
+      window.location.href = "http://localhost:3000/login";
+    }
   };
 
   const handleEditSubmit = async (e) => {
@@ -181,8 +186,8 @@ const Menu = () => {
         </div>
       </div>
 
-      {/* ── Profile Modal ── */}
-      {isProfileModalOpen && (
+      {/* ── Profile Modal (portalled to body to escape topbar containing block) ── */}
+      {isProfileModalOpen && createPortal(
         <div className="profile-modal-overlay" onClick={handleCloseModal}>
           <div
             className="profile-modal-card"
@@ -322,7 +327,8 @@ const Menu = () => {
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
