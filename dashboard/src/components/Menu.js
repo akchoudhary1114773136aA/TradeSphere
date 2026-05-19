@@ -57,9 +57,9 @@ const Menu = () => {
   const handleLogout = () => {
     localStorage.removeItem("stockly_token");
     try {
-      window.top.location.href = "http://localhost:3000/login";
+      window.top.location.href = "http://localhost:3000/login?logout=true";
     } catch (e) {
-      window.location.href = "http://localhost:3000/login";
+      window.location.href = "http://localhost:3000/login?logout=true";
     }
   };
 

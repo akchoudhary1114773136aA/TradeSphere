@@ -1,10 +1,11 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../signup/Signup.css";
 
 const API_BASE_URL = "http://localhost:3002";
 
 function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -12,12 +13,26 @@ function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // If redirected here after logout, clear port 3000's token
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("logout") === "true") {
+      localStorage.removeItem("stockly_token");
+      // Clean the URL
+      window.history.replaceState({}, document.title, "/login");
+    }
+  }, []);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((currentData) => ({
       ...currentData,
       [name]: value,
     }));
+  };
+
+  const closeDialog = () => {
+    navigate("/");
   };
 
   const handleSubmit = async (event) => {
@@ -52,7 +67,18 @@ function Login() {
 
   return (
     <main className="signup-page" aria-labelledby="login-title">
-      <div className="signup-backdrop" />
+      <div
+        className="signup-backdrop"
+        role="button"
+        tabIndex={0}
+        aria-label="Close login dialog"
+        onClick={closeDialog}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === "Escape") {
+            closeDialog();
+          }
+        }}
+      />
 
       <section
         className="signup-dialog"
@@ -60,6 +86,15 @@ function Login() {
         aria-modal="true"
         aria-labelledby="login-title"
       >
+        <button
+          className="signup-close"
+          type="button"
+          aria-label="Close login dialog"
+          onClick={closeDialog}
+        >
+          x
+        </button>
+
         <p className="signup-kicker">Welcome back</p>
         <h1 id="login-title">Log in to Stockly</h1>
         <p className="signup-copy">
