@@ -10,6 +10,8 @@ router.get('/me', authMiddleware, (req, res) => {
   res.json({
     name: req.user.name,
     email: req.user.email,
+    phoneNumber: req.user.phoneNumber,
+    city: req.user.city,
     walletBalance: req.user.walletBalance
   });
 });

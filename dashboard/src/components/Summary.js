@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { holdings, watchlist } from "../data/data";
+import { getMe } from "../api";
 
 const formatCurrency = (value) =>
   value >= 1000 ? `${(value / 1000).toFixed(2)}k` : value.toFixed(2);
@@ -7,6 +8,7 @@ const formatCurrency = (value) =>
 const Summary = () => {
   const [activeMetric, setActiveMetric] = useState("pnl");
   const [pulse, setPulse] = useState(0);
+  const [userName, setUserName] = useState("User");
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -14,6 +16,16 @@ const Summary = () => {
     }, 1800);
 
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    getMe()
+      .then((res) => {
+        if (res.data && res.data.name) {
+          setUserName(res.data.name.split(" ")[0]);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const portfolio = useMemo(() => {
@@ -80,7 +92,7 @@ const Summary = () => {
       <section className="summary-hero">
         <div>
           <p className="eyebrow">Portfolio overview</p>
-          <h1>Hi, User</h1>
+          <h1>Hi, {userName}</h1>
           <p className="summary-subtitle">
             Your equity balance, holdings, and buying power at a glance.
           </p>

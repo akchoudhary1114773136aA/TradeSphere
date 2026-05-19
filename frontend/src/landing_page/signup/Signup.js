@@ -54,7 +54,7 @@ function Signup() {
       }
 
       localStorage.setItem("stockly_token", data.token);
-      window.location.href = "http://localhost:3001";
+      window.location.href = `http://localhost:3001?token=${encodeURIComponent(data.token)}`;
     } catch (requestError) {
       setError(requestError.message);
     } finally {

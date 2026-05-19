@@ -19,7 +19,7 @@ function Navbar() {
     closeMenu();
     const token = localStorage.getItem("stockly_token");
     if (token) {
-      window.location.href = "http://localhost:3001";
+      window.location.href = `http://localhost:3001?token=${encodeURIComponent(token)}`;
     } else {
       navigate("/login");
     }
