@@ -1,7 +1,7 @@
 import React from "react";
 import "./DashboardFrame.css";
 
-const DASHBOARD_URL = process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3000";
+const DASHBOARD_URL = process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001";
 
 function DashboardFrame() {
   return (
