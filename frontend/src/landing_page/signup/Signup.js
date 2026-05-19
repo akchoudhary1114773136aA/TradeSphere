@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { apiRequest, saveSession } from "../../config/api";
+import { Link, useNavigate } from "react-router-dom";
 import "./Signup.css";
+
+const API_BASE_URL = "http://localhost:3002";
 
 function Signup() {
   const navigate = useNavigate();
@@ -13,7 +14,6 @@ function Signup() {
     city: "",
     experience: "Beginner",
   });
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,32 +25,41 @@ function Signup() {
     }));
   };
 
+  const closeDialog = () => {
+    navigate("/");
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
     setIsSubmitting(true);
 
     try {
-      const data = await apiRequest("/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
           password: formData.password,
+          phoneNumber: formData.phone,
+          city: formData.city,
         }),
       });
 
-      saveSession(data);
-      setSubmitted(true);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
+      localStorage.setItem("stockly_token", data.token);
+      window.location.href = "http://localhost:3001";
     } catch (requestError) {
       setError(requestError.message);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const closeDialog = () => {
-    navigate("/");
   };
 
   return (
@@ -83,109 +92,98 @@ function Signup() {
           x
         </button>
 
-        {submitted ? (
-          <div className="signup-success">
-            <p className="signup-kicker">Account request received</p>
-            <h1 id="signup-title">Thanks, {formData.fullName || "there"}.</h1>
-            <p>
-              We have your details and will help you finish opening your
-              TradeSphere account.
-            </p>
-            <button className="signup-primary" type="button" onClick={closeDialog}>
-              Back to home
-            </button>
-          </div>
-        ) : (
-          <>
-            <p className="signup-kicker">Create your account</p>
-            <h1 id="signup-title">Tell us a few details</h1>
-            <p className="signup-copy">
-              Enter your information to start your TradeSphere signup.
-            </p>
+        <p className="signup-kicker">Create your account</p>
+        <h1 id="signup-title">Tell us a few details</h1>
+        <p className="signup-copy">
+          Enter your information to start your Stockly signup.
+        </p>
 
-            <form className="signup-form" onSubmit={handleSubmit}>
-              {error && <p className="signup-error">{error}</p>}
+        <form className="signup-form" onSubmit={handleSubmit}>
+          {error && <p className="signup-error">{error}</p>}
 
-              <label>
-                Full name
-                <input
-                  name="fullName"
-                  type="text"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  placeholder="Aishwarya Kumar"
-                  required
-                />
-              </label>
+          <label>
+            Full name
+            <input
+              name="fullName"
+              type="text"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="Aishwarya Kumar"
+              required
+            />
+          </label>
 
-              <label>
-                Email address
-                <input
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  required
-                />
-              </label>
+          <label>
+            Email address
+            <input
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              required
+            />
+          </label>
 
-              <label>
-                Phone number
-                <input
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91 98765 43210"
-                  required
-                />
-              </label>
+          <label>
+            Phone number
+            <input
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="+91 98765 43210"
+            />
+          </label>
 
-              <label>
-                Password
-                <input
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Create a password"
-                  minLength="6"
-                  required
-                />
-              </label>
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a password"
+              minLength="6"
+              required
+            />
+          </label>
 
-              <label>
-                City
-                <input
-                  name="city"
-                  type="text"
-                  value={formData.city}
-                  onChange={handleChange}
-                  placeholder="Bengaluru"
-                  required
-                />
-              </label>
+          <label>
+            City
+            <input
+              name="city"
+              type="text"
+              value={formData.city}
+              onChange={handleChange}
+              placeholder="Bengaluru"
+            />
+          </label>
 
-              <label>
-                Trading experience
-                <select
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                >
-                  <option>Beginner</option>
-                  <option>Intermediate</option>
-                  <option>Advanced</option>
-                </select>
-              </label>
+          <label>
+            Trading experience
+            <select
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+            >
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </label>
 
-              <button className="signup-primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit details"}
-              </button>
-            </form>
-          </>
-        )}
+          <button className="signup-primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit details"}
+          </button>
+
+          <p style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: "8px" }}>
+            Already have an account?{" "}
+            <Link to="/login" style={{ fontWeight: 700 }}>
+              Log in
+            </Link>
+          </p>
+        </form>
       </section>
     </main>
   );

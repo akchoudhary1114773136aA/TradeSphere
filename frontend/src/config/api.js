@@ -1,18 +1,18 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3003";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3002";
 
 export const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 export const saveSession = ({ token, user }) => {
   if (token) {
-    localStorage.setItem("stocklyToken", token);
+    localStorage.setItem("stockly_token", token);
   }
 
   if (user) {
-    localStorage.setItem("stocklyUser", JSON.stringify(user));
+    localStorage.setItem("stockly_user", JSON.stringify(user));
   }
 };
 
-export const getToken = () => localStorage.getItem("stocklyToken");
+export const getToken = () => localStorage.getItem("stockly_token");
 
 export const apiRequest = async (path, options = {}) => {
   const token = getToken();
