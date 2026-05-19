@@ -1,0 +1,20 @@
+.dashboard-frame-page {
+  height: calc(100vh - 78px);
+  min-height: 640px;
+  background: #070b12;
+}
+
+.dashboard-frame {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  background: #070b12;
+}
+
+@media (max-width: 640px) {
+  .dashboard-frame-page {
+    height: calc(100vh - 72px);
+    min-height: 620px;
+  }
+}

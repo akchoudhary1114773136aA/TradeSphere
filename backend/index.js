@@ -13,6 +13,12 @@ const { OrdersModel } = require("./models/OrdersModel");
 const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGO_URL;
 
+mongoose.set("bufferCommands", false);
+
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = "stockly-local-dev-secret";
+}
+
 const authRoutes = require("./routes/authRoutes");
 const stockRoutes = require("./routes/stockRoutes");
 const tradeRoutes = require("./routes/tradeRoutes");
@@ -204,16 +210,43 @@ app.get("/api/health", (req, res) => {
 //   res.send("Done!");
 // });
 
+const toDashboardHolding = (holding) => {
+  const raw = typeof holding.toObject === "function" ? holding.toObject() : holding;
+  const name = raw.name || raw.stockSymbol || "";
+  const avg = Number(raw.avg ?? raw.averagePrice ?? raw.price ?? 0);
+  const price = Number(raw.price ?? raw.currentPrice ?? avg);
+  const qty = Number(raw.qty ?? raw.quantity ?? 0);
+  const netValue = avg ? ((price - avg) / avg) * 100 : 0;
+
+  return {
+    name: name.replace(".NS", ""),
+    qty,
+    avg,
+    price,
+    net: raw.net || `${netValue >= 0 ? "+" : ""}${netValue.toFixed(2)}%`,
+    day: raw.day || `${netValue >= 0 ? "+" : ""}${netValue.toFixed(2)}%`,
+    isLoss: raw.isLoss ?? price < avg,
+  };
+};
+
 app.get("/allHoldings", async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.json([]);
+  }
+
   try {
     let allHoldings = await HoldingsModel.find({});
-    res.json(allHoldings);
+    res.json(allHoldings.map(toDashboardHolding));
   } catch (err) {
     res.json([]);
   }
 });
 
 app.get("/allPositions", async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.json([]);
+  }
+
   try {
     let allPositions = await PositionsModel.find({});
     res.json(allPositions);
@@ -223,24 +256,40 @@ app.get("/allPositions", async (req, res) => {
 });
 
 app.post("/newOrder", async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(202).json({ message: "Order received in demo mode" });
+  }
+
   try {
+    const stockSymbol = req.body.stockSymbol || req.body.name;
+    const quantity = Number(req.body.quantity ?? req.body.qty ?? 0);
+    const price = Number(req.body.price ?? 0);
+
     let newOrder = new OrdersModel({
-      name: req.body.name,
-      qty: req.body.qty,
-      price: req.body.price,
+      stockSymbol,
+      quantity,
+      price,
       mode: req.body.mode,
     });
 
     await newOrder.save();
-    res.send("Order saved!");
+    res.status(201).json({ message: "Order saved!" });
   } catch (err) {
-    res.send("Order received");
+    res.status(202).json({ message: "Order received" });
   }
 });
 
 app.listen(PORT, () => {
   console.log("App started!");
-  mongoose.connection.once('open', () => { runSeed(); });
+  if (!uri) {
+    console.warn("MONGO_URL is not set. Backend is running in demo fallback mode.");
+    return;
+  }
+
+  mongoose.connection.once("open", () => {
+    runSeed();
+  });
+
   mongoose.connect(uri).catch((err) => {
     console.error("DB connection failed:", err.message);
   });

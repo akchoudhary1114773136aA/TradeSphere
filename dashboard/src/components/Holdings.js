@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { VerticalGraph } from "./VerticalGraph";
+import api from "../config/api";
 
-// import { holdings } from "../data/data";
+import { holdings } from "../data/data";
 
 const Holdings = () => {
-  const [allHoldings, setAllHoldings] = useState([]);
+  const [allHoldings, setAllHoldings] = useState(holdings);
 
   useEffect(() => {
-    axios.get("http://localhost:3002/allHoldings").then((res) => {
-      // console.log(res.data);
-      setAllHoldings(res.data);
-    });
+    api
+      .get("/allHoldings")
+      .then((res) => {
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setAllHoldings(res.data);
+        }
+      })
+      .catch(() => {
+        setAllHoldings(holdings);
+      });
   }, []);
 
   // const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
