@@ -1,9 +1,16 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
 const registerUser = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        message: 'Database is not connected. Add MONGO_URL in backend/.env to register users.'
+      });
+    }
+
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
@@ -44,6 +51,12 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        message: 'Database is not connected. Add MONGO_URL in backend/.env to login.'
+      });
+    }
+
     const { email, password } = req.body;
 
     if (!email || !password) {

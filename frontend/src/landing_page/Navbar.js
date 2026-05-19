@@ -15,6 +15,7 @@ function Navbar() {
 
   const navItems = [
     { label: "Home", path: "/" },
+    { label: "Dashboard", path: "/dashboard" },
     { label: "About", path: "/about" },
     { label: "Products", path: "/product" },
     { label: "Pricing", path: "/pricing" },

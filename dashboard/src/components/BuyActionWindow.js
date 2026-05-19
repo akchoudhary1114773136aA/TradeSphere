@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-import axios from "axios";
-
+import api from "../config/api";
 import GeneralContext from "./GeneralContext";
 
 import "./BuyActionWindow.css";
@@ -12,14 +11,19 @@ const BuyActionWindow = ({ uid }) => {
   const [stockPrice, setStockPrice] = useState(0.0);
 
   const handleBuyClick = () => {
-    axios.post("http://localhost:3002/newOrder", {
-      name: uid,
-      qty: stockQuantity,
-      price: stockPrice,
-      mode: "BUY",
-    });
-
-    GeneralContext.closeBuyWindow();
+    api
+      .post("/newOrder", {
+        name: uid,
+        qty: stockQuantity,
+        price: stockPrice,
+        mode: "BUY",
+      })
+      .catch(() => {
+        console.warn("Order API is unavailable. Closing the buy window locally.");
+      })
+      .finally(() => {
+        GeneralContext.closeBuyWindow();
+      });
   };
 
   const handleCancelClick = () => {
