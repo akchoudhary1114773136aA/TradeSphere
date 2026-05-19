@@ -1,37 +1,65 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
 
-import api from "../config/api";
 import GeneralContext from "./GeneralContext";
+import { placeOrder, getMe } from "../api";
 
 import "./BuyActionWindow.css";
 
-const BuyActionWindow = ({ uid }) => {
-  const [stockQuantity, setStockQuantity] = useState(1);
-  const [stockPrice, setStockPrice] = useState(0.0);
+const BuyActionWindow = ({ stock }) => {
+  const { closeBuyWindow } = useContext(GeneralContext);
 
-  const handleBuyClick = () => {
-    api
-      .post("/newOrder", {
-        name: uid,
-        qty: stockQuantity,
-        price: stockPrice,
-        mode: "BUY",
+  const [stockQuantity, setStockQuantity] = useState(1);
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const mode = stock.mode || "BUY";
+  const livePrice = stock.currentPrice || 0;
+  const total = (livePrice * stockQuantity).toFixed(2);
+
+  useEffect(() => {
+    getMe()
+      .then((res) => {
+        setWalletBalance(res.data.walletBalance);
       })
-      .catch(() => {
-        console.warn("Order API is unavailable. Closing the buy window locally.");
+      .catch(() => {});
+  }, []);
+
+  const handleConfirm = () => {
+    setError("");
+    setIsSubmitting(true);
+
+    placeOrder(stock.symbol, Number(stockQuantity), mode)
+      .then(() => {
+        closeBuyWindow();
+      })
+      .catch((err) => {
+        const msg =
+          err.response?.data?.message || "Trade failed. Please try again.";
+        setError(msg);
       })
       .finally(() => {
-        GeneralContext.closeBuyWindow();
+        setIsSubmitting(false);
       });
   };
 
   const handleCancelClick = () => {
-    GeneralContext.closeBuyWindow();
+    closeBuyWindow();
   };
 
   return (
     <div className="container" id="buy-window" draggable="true">
+      <div className="header">
+        <h3>
+          {stock.name}{" "}
+          <span>({stock.symbol})</span>
+        </h3>
+        <p className="market-options">
+          {mode === "BUY" ? "Buy" : "Sell"} · ₹
+          {livePrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+        </p>
+      </div>
+
       <div className="regular-order">
         <div className="inputs">
           <fieldset>
@@ -40,7 +68,8 @@ const BuyActionWindow = ({ uid }) => {
               type="number"
               name="qty"
               id="qty"
-              onChange={(e) => setStockQuantity(e.target.value)}
+              min="1"
+              onChange={(e) => setStockQuantity(Math.max(1, e.target.value))}
               value={stockQuantity}
             />
           </fieldset>
@@ -50,23 +79,46 @@ const BuyActionWindow = ({ uid }) => {
               type="number"
               name="price"
               id="price"
-              step="0.05"
-              onChange={(e) => setStockPrice(e.target.value)}
-              value={stockPrice}
+              value={livePrice.toFixed(2)}
+              disabled
             />
           </fieldset>
         </div>
+
+        {error && (
+          <p
+            style={{
+              color: "var(--loss)",
+              fontSize: "0.82rem",
+              marginBottom: "10px",
+              background: "var(--loss-bg)",
+              padding: "6px 12px",
+              borderRadius: "6px",
+            }}
+          >
+            {error}
+          </p>
+        )}
       </div>
 
       <div className="buttons">
-        <span>Margin required ₹140.65</span>
+        <span>
+          Total ₹{Number(total).toLocaleString("en-IN")}
+          {walletBalance != null && (
+            <> · Wallet ₹{walletBalance.toLocaleString("en-IN", { maximumFractionDigits: 2 })}</>
+          )}
+        </span>
         <div>
-          <Link className="btn btn-blue" onClick={handleBuyClick}>
-            Buy
-          </Link>
-          <Link to="" className="btn btn-grey" onClick={handleCancelClick}>
+          <button
+            className="btn btn-blue"
+            onClick={handleConfirm}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Processing..." : mode === "BUY" ? "Buy" : "Sell"}
+          </button>
+          <button className="btn btn-grey" onClick={handleCancelClick}>
             Cancel
-          </Link>
+          </button>
         </div>
       </div>
     </div>
