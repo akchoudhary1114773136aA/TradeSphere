@@ -1,6 +1,6 @@
-# STOCKLY — Full-Stack Stock Market Application
+# TradeSphere — Full-Stack Stock Market Application
 
-STOCKLY is a full-stack stock market simulation platform built with the MERN stack (MongoDB, Express, React, Node.js). It is split into **three independently running applications** that must all be started to use the platform.
+TradeSphere is a full-stack stock market simulation platform built with the MERN stack (MongoDB, Express, React, Node.js). It is split into **three independently running applications** that must all be started to use the platform.
 
 ---
 
