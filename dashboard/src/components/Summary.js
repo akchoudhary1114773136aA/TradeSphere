@@ -1,91 +1,111 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { holdings, watchlist } from "../data/data";
-import { getMe } from "../api";
+import React, { useEffect, useState } from "react";
+import { getMe, getHoldings, getMarketWatch } from "../api";
 
-const formatCurrency = (value) =>
-  value >= 1000 ? `${(value / 1000).toFixed(2)}k` : value.toFixed(2);
+const formatCurrency = (value) => {
+  if (value == null || isNaN(value)) return "—";
+  return Math.abs(value) >= 1000 ? `${(value / 1000).toFixed(2)}k` : value.toFixed(2);
+};
 
 const Summary = () => {
   const [activeMetric, setActiveMetric] = useState("pnl");
-  const [pulse, setPulse] = useState(0);
-  const [userName, setUserName] = useState("User");
+  
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [portfolioData, setPortfolioData] = useState(null);
+  const [marketWatch, setMarketWatch] = useState(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setPulse((current) => (current + 1) % 12);
-    }, 1800);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    getMe()
-      .then((res) => {
-        if (res.data && res.data.name) {
-          setUserName(res.data.name.split(" ")[0]);
+    Promise.allSettled([getMe(), getHoldings(), getMarketWatch()])
+      .then(([meRes, holdRes, mwRes]) => {
+        if (meRes.status === "fulfilled") {
+          setUserData(meRes.value.data);
+        }
+        if (holdRes.status === "fulfilled") {
+          setPortfolioData(holdRes.value.data);
+        }
+        if (mwRes.status === "fulfilled") {
+          setMarketWatch(mwRes.value.data);
         }
       })
-      .catch(() => {});
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  const portfolio = useMemo(() => {
-    const investment = holdings.reduce(
-      (sum, stock) => sum + stock.avg * stock.qty,
-      0
+  if (loading) {
+    return (
+      <div className="summary-page" style={{ padding: "40px", textAlign: "center", color: "var(--text-muted)" }}>
+        <div style={{ display: "inline-block", width: "30px", height: "30px", border: "3px solid rgba(255,255,255,0.1)", borderRadius: "50%", borderTopColor: "var(--accent-blue)", animation: "spin 1s ease-in-out infinite" }} />
+        <p style={{ marginTop: "16px" }}>Loading dashboard...</p>
+        <style>{`
+          @keyframes spin { 
+            to { transform: rotate(360deg); } 
+          }
+        `}</style>
+      </div>
     );
-    const current = holdings.reduce(
-      (sum, stock) => sum + stock.price * stock.qty,
-      0
-    );
-    const pnl = current - investment + pulse * 3.4;
-    const pnlPercent = (pnl / investment) * 100;
-    const gainers = watchlist.filter((stock) => !stock.isDown).length;
+  }
 
-    return {
-      investment,
-      current: current + pulse * 3.4,
-      pnl,
-      pnlPercent,
-      gainers,
-      losers: watchlist.length - gainers,
-    };
-  }, [pulse]);
+  // Calculate fields
+  const userName = userData && userData.name ? userData.name.split(" ")[0] : "User";
+  const walletBalance = userData ? userData.walletBalance : 0;
+  
+  const totalInvested = portfolioData?.summary?.totalInvested || 0;
+  const totalCurrent = portfolioData?.summary?.totalCurrent || 0;
+  const totalProfitLoss = portfolioData?.summary?.totalProfitLoss || 0;
+  const holdingsCount = portfolioData?.holdings?.length || 0;
+  
+  const profitLossPct = totalInvested > 0 ? ((totalProfitLoss / totalInvested) * 100).toFixed(2) : "0.00";
+  
+  const mwData = marketWatch || [];
+  const gainersCount = mwData.filter(stock => stock.quote?.regularMarketChangePercent > 0).length;
+  const losersCount = mwData.filter(stock => stock.quote?.regularMarketChangePercent < 0).length;
+  
+  const availableCash = walletBalance - totalInvested;
 
   const metricDetails = {
     margin: {
-      title: "Buying power",
-      value: "3.74k",
-      note: "Available margin is ready for new equity positions.",
+      title: "Wallet Balance",
+      value: formatCurrency(walletBalance),
+      note: "Total wallet balance available in your account.",
       accent: "blue",
     },
     used: {
-      title: "Risk usage",
-      value: "0",
-      note: "No margin is currently blocked by open intraday exposure.",
+      title: "Invested",
+      value: formatCurrency(totalInvested),
+      note: "Total amount invested in holdings.",
       accent: "orange",
     },
     value: {
-      title: "Portfolio value",
-      value: formatCurrency(portfolio.current),
-      note: `Invested ${formatCurrency(portfolio.investment)} across ${
-        holdings.length
-      } holdings.`,
+      title: "Current Value",
+      value: formatCurrency(totalCurrent),
+      note: `Invested ${formatCurrency(totalInvested)} across ${holdingsCount} holdings.`,
       accent: "blue",
     },
     pnl: {
       title: "Live P&L",
-      value: `${portfolio.pnl >= 0 ? "+" : ""}${formatCurrency(portfolio.pnl)}`,
-      note: `${portfolio.pnlPercent.toFixed(2)}% overall with ${
-        portfolio.gainers
-      } watchlist gainers.`,
+      value: `${totalProfitLoss >= 0 ? "+" : ""}${formatCurrency(totalProfitLoss)}`,
+      note: `${profitLossPct}% overall with ${gainersCount} watchlist gainers.`,
       accent: "green",
     },
   };
 
   const activeDetail = metricDetails[activeMetric];
-  const topMovers = [...watchlist]
-    .sort((a, b) => parseFloat(b.percent) - parseFloat(a.percent))
-    .slice(0, 4);
+
+  // Top movers for pulse
+  const topMovers = [...mwData]
+    .map(stock => {
+      const q = stock.quote || {};
+      const changePct = q.regularMarketChangePercent || 0;
+      return {
+        name: stock.name || stock.symbol.replace(/\.(NS|BO)$/i, ""),
+        percent: changePct,
+        percentStr: `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`,
+        isDown: changePct < 0
+      };
+    })
+    .sort((a, b) => Math.abs(b.percent) - Math.abs(a.percent))
+    .slice(0, 6);
 
   return (
     <div className="summary-page">
@@ -99,11 +119,11 @@ const Summary = () => {
         </div>
         <div className="hero-balance">
           <span>Total P&L</span>
-          <strong>
-            {portfolio.pnl >= 0 ? "+" : ""}
-            {formatCurrency(portfolio.pnl)}
+          <strong className={totalProfitLoss >= 0 ? "profit" : "loss"} style={ { color: totalProfitLoss >= 0 ? "var(--profit)" : "var(--loss)" } }>
+            {totalProfitLoss >= 0 ? "+" : ""}
+            {formatCurrency(totalProfitLoss)}
           </strong>
-          <small>{portfolio.pnlPercent.toFixed(2)}% overall</small>
+          <small>{profitLossPct}% overall</small>
         </div>
       </section>
 
@@ -113,29 +133,27 @@ const Summary = () => {
           onClick={() => setActiveMetric("margin")}
           type="button"
         >
-          <span>Margin available</span>
-          <strong>3.74k</strong>
-          <p>Opening balance 3.74k</p>
+          <span>Wallet Balance</span>
+          <strong>{formatCurrency(walletBalance)}</strong>
+          <p>Opening balance {formatCurrency(walletBalance)}</p>
         </button>
         <button
           className={`metric-card ${activeMetric === "used" ? "selected" : ""}`}
           onClick={() => setActiveMetric("used")}
           type="button"
         >
-          <span>Margins used</span>
-          <strong>0</strong>
+          <span>Invested</span>
+          <strong>{formatCurrency(totalInvested)}</strong>
           <p>No active utilization</p>
         </button>
         <button
-          className={`metric-card highlight ${
-            activeMetric === "value" ? "selected" : ""
-          }`}
+          className={`metric-card highlight ${activeMetric === "value" ? "selected" : ""}`}
           onClick={() => setActiveMetric("value")}
           type="button"
         >
-          <span>Current value</span>
-          <strong>{formatCurrency(portfolio.current)}</strong>
-          <p>Investment {formatCurrency(portfolio.investment)}</p>
+          <span>Current Value</span>
+          <strong>{formatCurrency(totalCurrent)}</strong>
+          <p>Investment {formatCurrency(totalInvested)}</p>
         </button>
         <button
           className={`metric-card ${activeMetric === "pnl" ? "selected" : ""}`}
@@ -143,7 +161,7 @@ const Summary = () => {
           type="button"
         >
           <span>Holdings</span>
-          <strong>{holdings.length}</strong>
+          <strong>{holdingsCount} stocks</strong>
           <p>Diversified positions</p>
         </button>
       </div>
@@ -155,105 +173,107 @@ const Summary = () => {
             <h2>{activeDetail.title}</h2>
             <p>{activeDetail.note}</p>
           </div>
-          <strong>{activeDetail.value}</strong>
+          <strong style={ activeMetric === 'pnl' ? { color: totalProfitLoss >= 0 ? "var(--profit)" : "var(--loss)" } : {} }>{activeDetail.value}</strong>
         </div>
 
         <div className="market-pulse-card">
           <div className="pulse-header">
             <span>Market pulse</span>
-            <small>{portfolio.gainers} up / {portfolio.losers} down</small>
+            <small>{gainersCount} up / {losersCount} down</small>
           </div>
           <div className="pulse-bars">
-            {topMovers.map((stock, index) => (
+            {topMovers.map((stock) => (
               <div className="pulse-row" key={stock.name}>
                 <span>{stock.name}</span>
                 <div>
                   <i
                     style={{
-                      width: `${Math.min(
-                        Math.abs(parseFloat(stock.percent)) * 24 + 18,
-                        100
-                      )}%`,
+                      width: `${Math.min(Math.abs(stock.percent) * 10 + 10, 100)}%`,
                     }}
                     className={stock.isDown ? "loss-bar" : "profit-bar"}
                   />
                 </div>
                 <b className={stock.isDown ? "loss-text" : "profit-text"}>
-                  {stock.percent}
+                  {stock.percentStr}
                 </b>
               </div>
             ))}
+            {topMovers.length === 0 && (
+              <div className="pulse-row">
+                <span style={{ color: "var(--text-muted)" }}>—</span>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
       <section className="dashboard-grid">
         <div className="section">
-        <span>
-          <p>Equity</p>
-        </span>
+          <span>
+            <p>Available Cash</p>
+          </span>
 
-        <div className="data">
-          <div className="first">
-            <h3>3.74k</h3>
-            <p>Margin available</p>
-          </div>
-          <hr />
+          <div className="data">
+            <div className="first">
+              <h3>{formatCurrency(availableCash)}</h3>
+              <p>Available cash</p>
+            </div>
+            <hr />
 
-          <div className="second">
-            <p>
-              Margins used <span>0</span>{" "}
-            </p>
-            <p>
-              Opening balance <span>3.74k</span>{" "}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="section">
-        <span>
-          <p>Holdings (13)</p>
-        </span>
-
-        <div className="data">
-          <div className="first">
-            <h3 className="profit">
-              1.55k <small>+5.20%</small>{" "}
-            </h3>
-            <p>P&L</p>
-          </div>
-          <hr />
-
-          <div className="second">
-            <p>
-              Current Value <span>31.43k</span>{" "}
-            </p>
-            <p>
-              Investment <span>29.88k</span>{" "}
-            </p>
+            <div className="second">
+              <p>
+                Margins used <span>{formatCurrency(totalInvested)}</span>{" "}
+              </p>
+              <p>
+                Opening balance <span>{formatCurrency(walletBalance)}</span>{" "}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="section activity-card">
-        <span>
-          <p>Recent activity</p>
-        </span>
-        <ul>
-          <li>
-            <b>Watchlist</b>
-            <span>{portfolio.gainers} symbols trading higher</span>
-          </li>
-          <li>
-            <b>Portfolio</b>
-            <span>Current value refreshed just now</span>
-          </li>
-          <li>
-            <b>Risk</b>
-            <span>No intraday margin usage detected</span>
-          </li>
-        </ul>
-      </div>
+
+        <div className="section">
+          <span>
+            <p>Holdings ({holdingsCount})</p>
+          </span>
+
+          <div className="data">
+            <div className="first">
+              <h3 className={totalProfitLoss >= 0 ? "profit" : "loss"}>
+                {formatCurrency(totalProfitLoss)} <small>{totalProfitLoss >= 0 ? "+" : ""}{profitLossPct}%</small>{" "}
+              </h3>
+              <p>P&L</p>
+            </div>
+            <hr />
+
+            <div className="second">
+              <p>
+                Current Value <span>{formatCurrency(totalCurrent)}</span>{" "}
+              </p>
+              <p>
+                Investment <span>{formatCurrency(totalInvested)}</span>{" "}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="section activity-card">
+          <span>
+            <p>Recent activity</p>
+          </span>
+          <ul>
+            <li>
+              <b>Watchlist</b>
+              <span>{gainersCount} symbols trading higher</span>
+            </li>
+            <li>
+              <b>Portfolio</b>
+              <span>Current value refreshed just now</span>
+            </li>
+            <li>
+              <b>Risk</b>
+              <span>No intraday margin usage detected</span>
+            </li>
+          </ul>
+        </div>
       </section>
     </div>
   );

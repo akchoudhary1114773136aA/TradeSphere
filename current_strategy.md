@@ -1,4 +1,3 @@
-
 ## API ROUTES (working and have been tested)
 
 POST http://localhost:3002/api/auth/register
