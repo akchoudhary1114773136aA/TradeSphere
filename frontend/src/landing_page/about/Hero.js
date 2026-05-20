@@ -16,40 +16,47 @@ function Hero() {
         style={{ lineHeight: "1.8", fontSize: "1.2em" }}
       >
         <div className="col-6 p-5">
-          <p>
-            We kick-started operations on the 15th of August, 2010 with the goal
-            of breaking all barriers that traders and investors face in India in
-            terms of cost, support, and technology. We named the company
-            TradeSphere, a combination of Trade and "Sphere", to represent an
-            open marketplace for traders and investors.
-          </p>
-          <p>
-            Today, our disruptive pricing models and in-house technology have
-            made us the biggest stock broker in India.
-          </p>
-          <p>
-            Over 1+ Crore clients place millions of orders every day through our
-            powerful ecosystem of investment platforms, contributing over 15% of
-            all Indian retail trading volumes.
-          </p>
-        </div>
-        <div className="col-6 p-5">
-          <p>
-            In addition, we run a number of popular open online educational and
-            community initiatives to empower retail traders and investors.
-          </p>
-          <p>
-            <a href="" style={{ textDecoration: "none" }}>
-              Rainmatter
-            </a>
-            , our fintech fund and incubator, has invested in several fintech
-            startups with the goal of growing the Indian capital markets.
-          </p>
-          <p>
-            And yet, we are always up to something new every day. Catch up on
-            the latest updates on our blog or see what the media is saying about
-            us.
-          </p>
+         <p>
+  We started our journey on the 5th of March, 2021 with the mission of
+  making investing and trading more accessible, affordable, and
+  technology-driven for people across India. We named the company
+  TradeSphere to represent a modern and connected financial ecosystem
+  for traders and investors.
+</p>
+
+<p>
+  Within a short span of time, our customer-first approach, transparent
+  pricing, and advanced trading platforms have helped us establish a
+  strong presence in the Indian fintech industry.
+</p>
+
+<p>
+  Today, lakhs of investors actively use our ecosystem to trade and
+  invest every day, contributing to the rapidly growing retail
+  participation in India’s financial markets.
+</p>
+</div>
+
+<div className="col-6 p-5">
+  <p>
+    Beyond trading, we also focus on spreading financial awareness
+    through educational programs, webinars, and community-driven
+    initiatives designed for modern investors.
+  </p>
+
+  <p>
+    <a href="" style={{ textDecoration: "none" }}>
+      SphereLabs
+    </a>
+    , our fintech innovation and startup support initiative, partners
+    with emerging startups that are building the future of digital
+    finance and investing in India.
+  </p>
+
+  <p>
+    We continue to grow, innovate, and launch new solutions regularly.
+    Follow our latest updates through our blog and media announcements.
+  </p>
         </div>
       </div>
     </div>

@@ -27,14 +27,13 @@ function Team() {
         </div>
         <div className="col-6 p-3">
           <p>
-            Aishwarya Kumar Choudhary bootstrapped and founded TradeSphere in
-            2010 to overcome the hurdles he faced during his decade long stint
-            as a trader. Today, TradeSphere has changed the landscape of the
-            Indian broking industry.
+            Aishwarya Kumar Choudhary founded TradeSphere in 2021 with a vision
+            to make investing and trading more seamless and accessible for
+             everyone in India.
           </p>
           <p>
-            He is a member of the SEBI Secondary Market Advisory Committee
-            (SMAC) and the Market Data Advisory Committee (MDAC).
+             Today, TradeSphere continues to grow as a trusted fintech platform,
+    empowering modern investors through technology-driven solutions.
           </p>
           <p>Playing basketball is his zen.</p>
           <p>
