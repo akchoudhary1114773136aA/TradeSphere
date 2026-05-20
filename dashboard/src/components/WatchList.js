@@ -13,12 +13,14 @@ import {
 
 import { getMarketWatch } from "../api";
 import { DoughnutChart } from "./DoughnoutChart";
+import StockAnalytics from "./StockAnalytics";
 
 const stripSuffix = (symbol) =>
   symbol ? symbol.replace(/\.(NS|BO)$/i, "") : symbol;
 
 const WatchList = () => {
   const [stocks, setStocks] = useState([]);
+  const [analyticsStock, setAnalyticsStock] = useState(null);
 
   const fetchData = () => {
     getMarketWatch()
@@ -106,7 +108,11 @@ const WatchList = () => {
 
       <ul className="list">
         {stocks.map((stock, index) => (
-          <WatchListItem stock={stock} key={stock.symbol || index} />
+          <WatchListItem 
+            stock={stock} 
+            key={stock.symbol || index} 
+            onOpenAnalytics={() => setAnalyticsStock({ symbol: stock.symbol, name: stock.name || stock.displayName })}
+          />
         ))}
       </ul>
 
@@ -115,13 +121,21 @@ const WatchList = () => {
           <DoughnutChart data={chartData} />
         </div>
       )}
+
+      {analyticsStock && (
+        <StockAnalytics 
+          symbol={analyticsStock.symbol} 
+          name={analyticsStock.name} 
+          onClose={() => setAnalyticsStock(null)} 
+        />
+      )}
     </div>
   );
 };
 
 export default WatchList;
 
-const WatchListItem = ({ stock }) => {
+const WatchListItem = ({ stock, onOpenAnalytics }) => {
   const [showWatchlistActions, setShowWatchlistActions] = useState(false);
 
   return (
@@ -152,13 +166,14 @@ const WatchListItem = ({ stock }) => {
           symbol={stock.symbol}
           price={stock.price}
           name={stock.name}
+          onOpenAnalytics={onOpenAnalytics}
         />
       )}
     </li>
   );
 };
 
-const WatchListActions = ({ uid, symbol, price, name }) => {
+const WatchListActions = ({ uid, symbol, price, name, onOpenAnalytics }) => {
   const generalContext = useContext(GeneralContext);
 
   const handleBuyClick = () => {
@@ -196,7 +211,7 @@ const WatchListActions = ({ uid, symbol, price, name }) => {
           arrow
           TransitionComponent={Grow}
         >
-          <button className="action">
+          <button className="action" onClick={onOpenAnalytics}>
             <BarChartOutlined className="icon" />
           </button>
         </Tooltip>
