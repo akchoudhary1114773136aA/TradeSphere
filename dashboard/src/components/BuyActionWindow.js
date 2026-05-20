@@ -15,7 +15,8 @@ const BuyActionWindow = ({ stock }) => {
 
   const mode = stock.mode || "BUY";
   const livePrice = stock.currentPrice || 0;
-  const total = (livePrice * stockQuantity).toFixed(2);
+  const isValidPrice = livePrice > 0;
+  const total = (isValidPrice && stockQuantity >= 1) ? (livePrice * stockQuantity).toFixed(2) : "0.00";
 
   useEffect(() => {
     getMe()
@@ -26,6 +27,7 @@ const BuyActionWindow = ({ stock }) => {
   }, []);
 
   const handleConfirm = () => {
+    if (!isValidPrice) return;
     setError("");
     setIsSubmitting(true);
 
@@ -56,7 +58,7 @@ const BuyActionWindow = ({ stock }) => {
         </h3>
         <p className="market-options">
           {mode === "BUY" ? "Buy" : "Sell"} · ₹
-          {livePrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+          {isValidPrice ? livePrice.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : "—"}
         </p>
       </div>
 
@@ -76,16 +78,29 @@ const BuyActionWindow = ({ stock }) => {
           <fieldset>
             <legend>Price</legend>
             <input
-              type="number"
+              type="text"
               name="price"
               id="price"
-              value={livePrice.toFixed(2)}
+              value={isValidPrice ? livePrice.toFixed(2) : "—"}
               disabled
             />
           </fieldset>
         </div>
 
-        {error && (
+        {!isValidPrice ? (
+          <p
+            style={{
+              color: "var(--loss)",
+              fontSize: "0.82rem",
+              marginBottom: "10px",
+              background: "var(--loss-bg)",
+              padding: "6px 12px",
+              borderRadius: "6px",
+            }}
+          >
+            Price unavailable for this stock
+          </p>
+        ) : error ? (
           <p
             style={{
               color: "var(--loss)",
@@ -98,7 +113,7 @@ const BuyActionWindow = ({ stock }) => {
           >
             {error}
           </p>
-        )}
+        ) : null}
       </div>
 
       <div className="buttons">
@@ -112,7 +127,7 @@ const BuyActionWindow = ({ stock }) => {
           <button
             className="btn btn-blue"
             onClick={handleConfirm}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isValidPrice}
           >
             {isSubmitting ? "Processing..." : mode === "BUY" ? "Buy" : "Sell"}
           </button>
