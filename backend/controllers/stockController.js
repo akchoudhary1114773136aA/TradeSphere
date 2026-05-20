@@ -1,6 +1,12 @@
 const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance();
 
+// Simple in-memory caches to reduce repeated calls to Yahoo Finance
+const quoteCache = new Map(); // key: symbol, value: { ts, data }
+const historyCache = new Map(); // key: symbol|options, value: { ts, data }
+const QUOTE_TTL = 15 * 1000; // 15s
+const HISTORY_TTL = 60 * 1000; // 60s
+
 const MARKET_WATCH_STOCKS = [
   { symbol: "RELIANCE.NS", name: "Reliance Industries" },
   { symbol: "TCS.NS",      name: "Tata Consultancy Services" },
@@ -20,6 +26,14 @@ const MARKET_WATCH_STOCKS = [
 ];
 
 const fetchQuoteWithFallback = async (symbol) => {
+  // try cache
+  try {
+    const cached = quoteCache.get(symbol);
+    if (cached && Date.now() - cached.ts < QUOTE_TTL) {
+      return cached.data;
+    }
+  } catch (e) {}
+
   try {
     let quote = await yahooFinance.quote(symbol);
     if (!quote || quote.regularMarketPrice == null) {
@@ -27,16 +41,20 @@ const fetchQuoteWithFallback = async (symbol) => {
         const fallbackSymbol = symbol.replace('.NS', '.BO');
         const fallbackQuote = await yahooFinance.quote(fallbackSymbol);
         if (fallbackQuote && fallbackQuote.regularMarketPrice != null) {
+          try { quoteCache.set(symbol, { ts: Date.now(), data: fallbackQuote }); } catch (e) {}
           return fallbackQuote;
         }
       }
     }
+    try { quoteCache.set(symbol, { ts: Date.now(), data: quote }); } catch (e) {}
     return quote;
   } catch (error) {
     if (symbol.endsWith('.NS')) {
       try {
         const fallbackSymbol = symbol.replace('.NS', '.BO');
-        return await yahooFinance.quote(fallbackSymbol);
+        const fb = await yahooFinance.quote(fallbackSymbol);
+        try { quoteCache.set(symbol, { ts: Date.now(), data: fb }); } catch (e) {}
+        return fb;
       } catch (fallbackError) {
         throw error;
       }
@@ -84,6 +102,14 @@ const getMarketWatch = async (req, res) => {
 };
 
 const fetchChartWithFallback = async (symbol, queryOptions) => {
+  const cacheKey = `${symbol}|${JSON.stringify(queryOptions || {})}`;
+  try {
+    const cached = historyCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < HISTORY_TTL) {
+      return cached.data;
+    }
+  } catch (e) {}
+
   try {
     let result = await yahooFinance.chart(symbol, queryOptions);
     if (!result || !result.quotes || result.quotes.length === 0) {
@@ -91,16 +117,20 @@ const fetchChartWithFallback = async (symbol, queryOptions) => {
         const fallbackSymbol = symbol.replace('.NS', '.BO');
         const fallbackResult = await yahooFinance.chart(fallbackSymbol, queryOptions);
         if (fallbackResult && fallbackResult.quotes && fallbackResult.quotes.length > 0) {
+          try { historyCache.set(cacheKey, { ts: Date.now(), data: fallbackResult }); } catch (e) {}
           return fallbackResult;
         }
       }
     }
+    try { historyCache.set(cacheKey, { ts: Date.now(), data: result }); } catch (e) {}
     return result;
   } catch (error) {
     if (symbol.endsWith('.NS')) {
       try {
         const fallbackSymbol = symbol.replace('.NS', '.BO');
-        return await yahooFinance.chart(fallbackSymbol, queryOptions);
+        const res = await yahooFinance.chart(fallbackSymbol, queryOptions);
+        try { historyCache.set(cacheKey, { ts: Date.now(), data: res }); } catch (e) {}
+        return res;
       } catch (fallbackError) {
         throw error;
       }

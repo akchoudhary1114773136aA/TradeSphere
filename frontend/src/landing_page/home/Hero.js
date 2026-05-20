@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Hero.css";
+import { apiRequest } from "../../config/api";
 
 const ranges = ["1D", "6M", "1Y", "5Y"];
 
@@ -10,7 +11,7 @@ const rangePathShift = {
   "5Y": 16,
 };
 
-const markets = [
+const defaultMarkets = [
   {
     symbol: "NIFTY 50",
     price: "22,450.30",
@@ -48,13 +49,171 @@ const markets = [
   },
 ];
 
+const stripSuffix = (symbol) => (symbol ? symbol.replace(/\.(NS|BO)$/i, "") : symbol);
+
+const toDisplayPrice = (num) => {
+  if (num == null || isNaN(num)) return "—";
+  return num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+};
+
+const formatLargeNumber = (val) => {
+  if (val == null || isNaN(val)) return "—";
+  if (val >= 10000000) return `${(val / 10000000).toFixed(2)} Cr`;
+  if (val >= 100000) return `${(val / 100000).toFixed(2)} Lakh`;
+  if (val >= 1000) return `${(val / 1000).toFixed(2)}k`;
+  return val.toLocaleString("en-IN");
+};
+
+const buildPathFromHistory = (history, width = 360, height = 200, pad = 10) => {
+  if (!history || history.length === 0) return "M0 100 C60 90 120 110 180 100 C240 90 300 110 360 100";
+  const closes = history.map((it) => Number(it.close ?? it.adjClose ?? it.close ?? 0)).filter((v) => !isNaN(v));
+  if (closes.length === 0) return "M0 100 C60 90 120 110 180 100 C240 90 300 110 360 100";
+
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const range = max - min || 1;
+  const n = closes.length;
+  const stepX = n > 1 ? (width - pad * 2) / (n - 1) : 0;
+
+  const points = closes.map((v, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (1 - (v - min) / range) * (height - pad * 2);
+    return { x: Math.round(x), y: Math.round(y) };
+  });
+
+  let path = ``;
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    if (i === 0) path += `M ${p.x} ${p.y}`;
+    else path += ` L ${p.x} ${p.y}`;
+  }
+  return path;
+};
+
 function Hero() {
   const [activeRange, setActiveRange] = useState("1D");
-  const [activeMarket, setActiveMarket] = useState(markets[0]);
-  const chartPath = activeMarket.path.replace(
+  const [markets, setMarkets] = useState(defaultMarkets);
+  const [activeMarket, setActiveMarket] = useState(defaultMarkets[0]);
+
+  const chartPath = (activeMarket && activeMarket.path ? activeMarket.path : defaultMarkets[0].path).replace(
     /(\d+)$/,
     (value) => Number(value) + rangePathShift[activeRange]
   );
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchLive = async () => {
+      try {
+        const [niftyQuote, mwData] = await Promise.all([
+          apiRequest("/api/stocks/quote/^NSEI"),
+          apiRequest("/api/stocks/market-watch"),
+        ]);
+
+        if (!mounted) return;
+
+        const newMarkets = [];
+
+        // NIFTY
+        if (niftyQuote) {
+          const price = niftyQuote.regularMarketPrice;
+          const changePct = niftyQuote.regularMarketChangePercent;
+          newMarkets.push({
+            symbol: "NIFTY 50",
+            price: toDisplayPrice(price),
+            rawPrice: price,
+            rawSymbol: "^NSEI",
+            change: changePct != null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%` : "",
+            trend: changePct != null && changePct < 0 ? "negative" : "positive",
+            path: defaultMarkets[0].path,
+            fiftyTwoWeekHigh: niftyQuote.fiftyTwoWeekHigh,
+            volume: niftyQuote.regularMarketVolume,
+            pe: niftyQuote.trailingPE || niftyQuote.forwardPE || null,
+          });
+        } else {
+          newMarkets.push(defaultMarkets[0]);
+        }
+
+        // target small cards order: RELIANCE, TCS, HDFC BANK, INFOSYS
+        const targets = ["RELIANCE", "TCS", "HDFC BANK", "INFOSYS"];
+
+        const list = Array.isArray(mwData) ? mwData : [];
+
+        const normalize = (s) => (s || "").replace(/\s+/g, "").toUpperCase();
+
+        targets.forEach((t) => {
+          let found = list.find((it) => {
+            const sym = stripSuffix(it.symbol || "");
+            const name = (it.name || "").replace(/\s+/g, "");
+            return normalize(sym) === normalize(t) || normalize(name) === normalize(t) || normalize(it.symbol || "").includes(normalize(t));
+          });
+
+          if (found && found.quote) {
+            const q = found.quote;
+            const changePct = q.regularMarketChangePercent;
+            const dispSymbol = stripSuffix(found.symbol) || (found.name || t);
+            const defaultEntry = defaultMarkets.find((m) => m.symbol.replace(/\s+/g, "").toUpperCase() === normalize(t));
+              newMarkets.push({
+                symbol: defaultEntry ? defaultEntry.symbol : dispSymbol,
+                price: toDisplayPrice(q.regularMarketPrice),
+                rawPrice: q.regularMarketPrice,
+                rawSymbol: found.symbol,
+                change: changePct != null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%` : "",
+                trend: changePct != null && changePct < 0 ? "negative" : "positive",
+                path: defaultEntry ? defaultEntry.path : "M0 100 C80 90 160 110 240 100 320 90 360 95",
+                fiftyTwoWeekHigh: q.fiftyTwoWeekHigh,
+                volume: q.regularMarketVolume,
+                pe: q.trailingPE || q.forwardPE || null,
+              });
+          } else {
+            // fallback to static
+            const fallback = defaultMarkets.find((m) => m.symbol.replace(/\s+/g, "").toUpperCase() === normalize(t));
+            if (fallback) newMarkets.push(fallback);
+          }
+        });
+
+        setMarkets(newMarkets);
+
+        // fetch 1M history for each market to generate sparkline paths
+        const fetchHistories = async () => {
+          await Promise.all(
+            newMarkets.map(async (m) => {
+              const sym = m.rawSymbol || m.symbol;
+              if (!sym) return;
+              try {
+                const res = await apiRequest(`/api/stocks/history/${encodeURIComponent(sym)}?period=1M`);
+                if (!mounted || !Array.isArray(res) || res.length === 0) return;
+                const path = buildPathFromHistory(res, 360, 200, 12);
+                setMarkets((prev) => prev.map((itm) => (itm.symbol === m.symbol ? { ...itm, path } : itm)));
+              } catch (e) {
+                // ignore individual history errors
+              }
+            })
+          );
+        };
+
+        fetchHistories();
+
+        // if active market was set previously, refresh it with updated object
+        setActiveMarket((prev) => {
+          if (!prev) return newMarkets[0];
+          const matched = newMarkets.find((m) => m.symbol === prev.symbol);
+          return matched || newMarkets[0];
+        });
+      } catch (err) {
+        // If API fails (most likely unauthenticated), keep defaults
+        setMarkets(defaultMarkets);
+        setActiveMarket(defaultMarkets[0]);
+      }
+    };
+
+    fetchLive();
+    const interval = setInterval(fetchLive, 60000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <section className="tradehero">
@@ -145,7 +304,17 @@ function Hero() {
             <p className="card-title">{market.symbol}</p>
             <p className="card-value">{market.price}</p>
             <p className="card-change">{market.change}</p>
-            <div className="chart-strip"></div>
+            <div className="chart-strip">
+              <svg viewBox="0 0 360 200" preserveAspectRatio="none">
+                <path
+                  d={market.path || defaultMarkets[0].path}
+                  fill="none"
+                  stroke={market.trend === "negative" ? "rgba(255,92,122,0.9)" : "rgba(18,214,167,0.9)"}
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
           </button>
         ))}
 
@@ -155,19 +324,19 @@ function Hero() {
 
         <div className="tradehero-info-card" data-aos="fade-up">
           <p className="info-label">52W High</p>
-          <p className="info-value">23,441</p>
-          <p className="info-note">4.2% away</p>
+          <p className="info-value">{activeMarket?.fiftyTwoWeekHigh ? toDisplayPrice(activeMarket.fiftyTwoWeekHigh) : "—"}</p>
+          <p className="info-note">{(activeMarket?.fiftyTwoWeekHigh && activeMarket?.rawPrice) ? `${(((activeMarket.fiftyTwoWeekHigh - activeMarket.rawPrice) / activeMarket.fiftyTwoWeekHigh) * 100).toFixed(1)}% away` : "—"}</p>
         </div>
 
         <div className="tradehero-info-card" data-aos="fade-up">
           <p className="info-label">Volume</p>
-          <p className="info-value">2.4B</p>
-          <p className="info-note">Avg 2.1B</p>
+          <p className="info-value">{activeMarket?.volume ? formatLargeNumber(activeMarket.volume) : "—"}</p>
+          <p className="info-note">Avg {activeMarket?.volume ? formatLargeNumber(Math.round(activeMarket.volume / 1.1)) : "—"}</p>
         </div>
 
         <div className="tradehero-info-card" data-aos="fade-up">
           <p className="info-label">P/E Ratio</p>
-          <p className="info-value">21.3x</p>
+          <p className="info-value">{activeMarket?.pe ? `${Number(activeMarket.pe).toFixed(1)}x` : "—"}</p>
           <p className="info-note">Hist. 19.8x</p>
         </div>
 
