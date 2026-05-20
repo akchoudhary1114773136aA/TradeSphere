@@ -43,7 +43,15 @@ app.use("/api/trade", tradeRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+  const dbState = mongoose.connection.readyState;
+  const dbStatus =
+    dbState === 1 ? "connected" : dbState === 2 ? "connecting" : "disconnected";
+
+  res.json({
+    status: "ok",
+    database: dbStatus,
+    mongoUrlConfigured: Boolean(uri),
+  });
 });
 
 // app.get("/addHoldings", async (req, res) => {
@@ -286,6 +294,7 @@ app.listen(PORT, () => {
 
   mongoose.connect(uri).catch((err) => {
     console.error("DB connection failed:", err.message);
+    console.error("Check MONGO_URL on Render and Atlas Network Access (0.0.0.0/0).");
   });
   // mongoose.connect(uri)
   // .then(() => {
