@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -13,9 +14,19 @@ function Navbar() {
     setMenuOpen(false);
   };
 
+  const handleDashboardClick = (event) => {
+    event.preventDefault();
+    closeMenu();
+    const token = localStorage.getItem("stockly_token");
+    if (token) {
+      window.location.href = `http://localhost:3001?token=${encodeURIComponent(token)}`;
+    } else {
+      navigate("/login");
+    }
+  };
+
   const navItems = [
     { label: "Home", path: "/" },
-    { label: "Dashboard", path: "/dashboard" },
     { label: "About", path: "/about" },
     { label: "Products", path: "/product" },
     { label: "Pricing", path: "/pricing" },
@@ -45,6 +56,15 @@ function Navbar() {
               </NavLink>
             </li>
           ))}
+          <li>
+            <a
+              href="http://localhost:3001"
+              className="navbar-link"
+              onClick={handleDashboardClick}
+            >
+              Dashboard
+            </a>
+          </li>
           <li className="navbar-actions">
             <Link to="/signup" className="navbar-cta" onClick={closeMenu}>
               Sign up

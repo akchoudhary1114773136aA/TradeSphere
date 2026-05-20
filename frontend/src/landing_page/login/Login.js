@@ -1,21 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./Signup.css";
+import "../signup/Signup.css";
 
 const API_BASE_URL = "http://localhost:3002";
 
-function Signup() {
+function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: "",
     email: "",
-    phone: "",
     password: "",
-    city: "",
-    experience: "Beginner",
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If redirected here after logout, clear port 3000's token
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("logout") === "true") {
+      localStorage.removeItem("stockly_token");
+      // Clean the URL
+      window.history.replaceState({}, document.title, "/login");
+    }
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -35,22 +41,19 @@ function Signup() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.fullName,
           email: formData.email,
           password: formData.password,
-          phoneNumber: formData.phone,
-          city: formData.city,
         }),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
+        throw new Error(data.message || "Login failed");
       }
 
       localStorage.setItem("stockly_token", data.token);
@@ -63,12 +66,12 @@ function Signup() {
   };
 
   return (
-    <main className="signup-page" aria-labelledby="signup-title">
+    <main className="signup-page" aria-labelledby="login-title">
       <div
         className="signup-backdrop"
         role="button"
         tabIndex={0}
-        aria-label="Close signup dialog"
+        aria-label="Close login dialog"
         onClick={closeDialog}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === "Escape") {
@@ -81,39 +84,27 @@ function Signup() {
         className="signup-dialog"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="signup-title"
+        aria-labelledby="login-title"
       >
         <button
           className="signup-close"
           type="button"
-          aria-label="Close signup dialog"
+          aria-label="Close login dialog"
           onClick={closeDialog}
         >
           x
         </button>
 
-        <p className="signup-kicker">Create your account</p>
-        <h1 id="signup-title">Tell us a few details</h1>
+        <p className="signup-kicker">Welcome back</p>
+        <h1 id="login-title">Log in to Stockly</h1>
         <p className="signup-copy">
-          Enter your information to start your Stockly signup.
+          Enter your credentials to access your dashboard.
         </p>
 
         <form className="signup-form" onSubmit={handleSubmit}>
           {error && <p className="signup-error">{error}</p>}
 
-          <label>
-            Full name
-            <input
-              name="fullName"
-              type="text"
-              value={formData.fullName}
-              onChange={handleChange}
-              placeholder="Aishwarya Kumar"
-              required
-            />
-          </label>
-
-          <label>
+          <label style={{ gridColumn: "1 / -1" }}>
             Email address
             <input
               name="email"
@@ -125,62 +116,27 @@ function Signup() {
             />
           </label>
 
-          <label>
-            Phone number
-            <input
-              name="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+91 98765 43210"
-            />
-          </label>
-
-          <label>
+          <label style={{ gridColumn: "1 / -1" }}>
             Password
             <input
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Create a password"
+              placeholder="Your password"
               minLength="6"
               required
             />
           </label>
 
-          <label>
-            City
-            <input
-              name="city"
-              type="text"
-              value={formData.city}
-              onChange={handleChange}
-              placeholder="Bengaluru"
-            />
-          </label>
-
-          <label>
-            Trading experience
-            <select
-              name="experience"
-              value={formData.experience}
-              onChange={handleChange}
-            >
-              <option>Beginner</option>
-              <option>Intermediate</option>
-              <option>Advanced</option>
-            </select>
-          </label>
-
           <button className="signup-primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit details"}
+            {isSubmitting ? "Logging in..." : "Log in"}
           </button>
 
           <p style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: "8px" }}>
-            Already have an account?{" "}
-            <Link to="/login" style={{ fontWeight: 700 }}>
-              Log in
+            Don't have an account?{" "}
+            <Link to="/signup" style={{ fontWeight: 700 }}>
+              Sign up
             </Link>
           </p>
         </form>
@@ -189,4 +145,4 @@ function Signup() {
   );
 }
 
-export default Signup;
+export default Login;

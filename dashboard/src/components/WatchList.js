@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 import GeneralContext from "./GeneralContext";
 
@@ -11,18 +11,47 @@ import {
   MoreHoriz,
 } from "@mui/icons-material";
 
-import { watchlist } from "../data/data";
+import { getMarketWatch } from "../api";
 import { DoughnutChart } from "./DoughnoutChart";
 
-const labels = watchlist.map((subArray) => subArray["name"]);
+const stripSuffix = (symbol) =>
+  symbol ? symbol.replace(/\.(NS|BO)$/i, "") : symbol;
 
 const WatchList = () => {
-  const data = {
-    labels,
+  const [stocks, setStocks] = useState([]);
+
+  const fetchData = () => {
+    getMarketWatch()
+      .then((res) => {
+        const list = (res.data || []).slice(0, 15).map((item) => {
+          const q = item.quote || {};
+          const changePct = q.regularMarketChangePercent || 0;
+          return {
+            symbol: item.symbol,
+            name: item.name,
+            displayName: stripSuffix(item.symbol),
+            price: q.regularMarketPrice || 0,
+            changePercent: changePct,
+            isDown: changePct < 0,
+          };
+        });
+        setStocks(list);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const chartData = {
+    labels: stocks.map((s) => s.displayName),
     datasets: [
       {
         label: "Price",
-        data: watchlist.map((stock) => stock.price),
+        data: stocks.map((s) => s.price),
         backgroundColor: [
           "rgba(18, 214, 167, 0.62)",
           "rgba(77, 141, 255, 0.62)",
@@ -30,6 +59,15 @@ const WatchList = () => {
           "rgba(255, 92, 122, 0.62)",
           "rgba(182, 194, 209, 0.46)",
           "rgba(123, 220, 255, 0.58)",
+          "rgba(18, 214, 167, 0.42)",
+          "rgba(77, 141, 255, 0.42)",
+          "rgba(255, 138, 61, 0.42)",
+          "rgba(255, 92, 122, 0.42)",
+          "rgba(182, 194, 209, 0.36)",
+          "rgba(123, 220, 255, 0.38)",
+          "rgba(18, 214, 167, 0.30)",
+          "rgba(77, 141, 255, 0.30)",
+          "rgba(255, 138, 61, 0.30)",
         ],
         borderColor: [
           "rgba(18, 214, 167, 1)",
@@ -38,38 +76,20 @@ const WatchList = () => {
           "rgba(255, 92, 122, 1)",
           "rgba(182, 194, 209, 0.9)",
           "rgba(123, 220, 255, 0.95)",
+          "rgba(18, 214, 167, 0.9)",
+          "rgba(77, 141, 255, 0.9)",
+          "rgba(255, 138, 61, 0.9)",
+          "rgba(255, 92, 122, 0.9)",
+          "rgba(182, 194, 209, 0.8)",
+          "rgba(123, 220, 255, 0.85)",
+          "rgba(18, 214, 167, 0.8)",
+          "rgba(77, 141, 255, 0.8)",
+          "rgba(255, 138, 61, 0.8)",
         ],
         borderWidth: 1,
       },
     ],
   };
-
-  // export const data = {
-  //   labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-  // datasets: [
-  //   {
-  //     label: "# of Votes",
-  //     data: [12, 19, 3, 5, 2, 3],
-  //     backgroundColor: [
-  //       "rgba(255, 99, 132, 0.2)",
-  //       "rgba(54, 162, 235, 0.2)",
-  //       "rgba(255, 206, 86, 0.2)",
-  //       "rgba(75, 192, 192, 0.2)",
-  //       "rgba(153, 102, 255, 0.2)",
-  //       "rgba(255, 159, 64, 0.2)",
-  //     ],
-  //     borderColor: [
-  //       "rgba(255, 99, 132, 1)",
-  //       "rgba(54, 162, 235, 1)",
-  //       "rgba(255, 206, 86, 1)",
-  //       "rgba(75, 192, 192, 1)",
-  //       "rgba(153, 102, 255, 1)",
-  //       "rgba(255, 159, 64, 1)",
-  //     ],
-  //     borderWidth: 1,
-  //   },
-  // ],
-  // };
 
   return (
     <div className="watchlist-container">
@@ -81,18 +101,20 @@ const WatchList = () => {
           placeholder="Search eg:infy, bse, nifty fut weekly, gold mcx"
           className="search"
         />
-        <span className="counts"> {watchlist.length} / 50</span>
+        <span className="counts"> {stocks.length} / 50</span>
       </div>
 
       <ul className="list">
-        {watchlist.map((stock, index) => {
-          return <WatchListItem stock={stock} key={index} />;
-        })}
+        {stocks.map((stock, index) => (
+          <WatchListItem stock={stock} key={stock.symbol || index} />
+        ))}
       </ul>
 
-      <div className="watchlist-chart">
-        <DoughnutChart data={data} />
-      </div>
+      {stocks.length > 0 && (
+        <div className="watchlist-chart">
+          <DoughnutChart data={chartData} />
+        </div>
+      )}
     </div>
   );
 };
@@ -102,38 +124,49 @@ export default WatchList;
 const WatchListItem = ({ stock }) => {
   const [showWatchlistActions, setShowWatchlistActions] = useState(false);
 
-  const handleMouseEnter = (e) => {
-    setShowWatchlistActions(true);
-  };
-
-  const handleMouseLeave = (e) => {
-    setShowWatchlistActions(false);
-  };
-
   return (
-    <li onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <li
+      onMouseEnter={() => setShowWatchlistActions(true)}
+      onMouseLeave={() => setShowWatchlistActions(false)}
+    >
       <div className="item">
-        <p className={stock.isDown ? "down" : "up"}>{stock.name}</p>
+        <p className={stock.isDown ? "down" : "up"}>{stock.displayName}</p>
         <div className="itemInfo">
-          <span className="percent">{stock.percent}</span>
+          <span className={`percent ${stock.isDown ? "down" : "up"}`}>
+            {stock.changePercent >= 0 ? "+" : ""}
+            {stock.changePercent.toFixed(2)}%
+          </span>
           {stock.isDown ? (
             <KeyboardArrowDown className="down" />
           ) : (
             <KeyboardArrowUp className="up" />
           )}
-          <span className="price">{stock.price}</span>
+          <span className="price">
+            {stock.price.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+          </span>
         </div>
       </div>
-      {showWatchlistActions && <WatchListActions uid={stock.name} />}
+      {showWatchlistActions && (
+        <WatchListActions
+          uid={stock.displayName}
+          symbol={stock.symbol}
+          price={stock.price}
+          name={stock.name}
+        />
+      )}
     </li>
   );
 };
 
-const WatchListActions = ({ uid }) => {
+const WatchListActions = ({ uid, symbol, price, name }) => {
   const generalContext = useContext(GeneralContext);
 
   const handleBuyClick = () => {
-    generalContext.openBuyWindow(uid);
+    generalContext.openBuyWindow({ symbol, name: uid, currentPrice: price, fullName: name });
+  };
+
+  const handleSellClick = () => {
+    generalContext.openBuyWindow({ symbol, name: uid, currentPrice: price, fullName: name, mode: "SELL" });
   };
 
   return (
@@ -153,6 +186,7 @@ const WatchListActions = ({ uid }) => {
           placement="top"
           arrow
           TransitionComponent={Grow}
+          onClick={handleSellClick}
         >
           <button className="sell">Sell</button>
         </Tooltip>
