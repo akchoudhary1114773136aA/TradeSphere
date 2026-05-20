@@ -25,6 +25,19 @@ const MARKET_WATCH_STOCKS = [
   { symbol: "LT.NS",       name: "Larsen & Toubro" }
 ];
 
+const SYMBOL_ALIASES = {
+  "NIFTY 50": "^NSEI",
+  NIFTY50: "^NSEI",
+  NIFTY: "^NSEI",
+  NSEI: "^NSEI",
+};
+
+const resolveYahooSymbol = (symbol) => {
+  const raw = String(symbol || "").trim();
+  const normalized = raw.replace(/\s+/g, "").toUpperCase();
+  return SYMBOL_ALIASES[raw.toUpperCase()] || SYMBOL_ALIASES[normalized] || raw;
+};
+
 const fetchQuoteWithFallback = async (symbol) => {
   // try cache
   try {
@@ -64,7 +77,7 @@ const fetchQuoteWithFallback = async (symbol) => {
 };
 
 const getLiveQuote = async (req, res) => {
-  const { symbol } = req.params;
+  const symbol = resolveYahooSymbol(req.params.symbol);
   try {
     const quote = await fetchQuoteWithFallback(symbol);
     res.json(quote);
@@ -169,7 +182,7 @@ const fetchChartWithFallback = async (symbol, queryOptions) => {
   // Build a list of sensible candidate symbols to try.
   const buildCandidates = (sym) => {
     if (!sym) return [];
-    const s = String(sym).trim();
+    const s = resolveYahooSymbol(sym);
     const out = [];
 
     // always try the raw symbol first
@@ -223,7 +236,34 @@ const fetchChartWithFallback = async (symbol, queryOptions) => {
             return err.result;
           }
         } catch (e) {
-          // fallthrough to record error
+          // continue to heuristics below
+        }
+
+        // Heuristic: some Yahoo responses include adjclose arrays but no timestamps.
+        // If so, construct approximate timestamps using queryOptions.period1/period2
+        try {
+          const adj = err.result.indicators && err.result.indicators.adjclose && err.result.indicators.adjclose[0] && err.result.indicators.adjclose[0].adjclose;
+          if (Array.isArray(adj) && adj.length > 0) {
+            // determine start/end from queryOptions (we set epoch seconds earlier)
+            let p1 = queryOptions && queryOptions.period1 ? Number(queryOptions.period1) : null;
+            let p2 = queryOptions && queryOptions.period2 ? Number(queryOptions.period2) : null;
+            if (!p2 || isNaN(p2)) p2 = Math.floor(Date.now() / 1000);
+            if (!p1 || isNaN(p1)) p1 = p2 - adj.length * 24 * 60 * 60; // fallback assume daily
+
+            const n = adj.length;
+            const intervalSec = Math.max(1, Math.floor((p2 - p1) / Math.max(1, n - 1)));
+            const quotes = adj
+              .map((val, i) => ({ date: new Date((p1 + i * intervalSec) * 1000).toISOString(), close: val }))
+              .filter((q) => q.close != null && !isNaN(q.close));
+
+            if (quotes.length > 0) {
+              const synthetic = { quotes };
+              try { historyCache.set(cacheKey, { ts: Date.now(), data: synthetic }); } catch (e) {}
+              return synthetic;
+            }
+          }
+        } catch (e) {
+          // ignore heuristic failures
         }
       }
       lastError = err;
@@ -236,7 +276,7 @@ const fetchChartWithFallback = async (symbol, queryOptions) => {
 };
 
 const getStockHistory = async (req, res) => {
-  const { symbol } = req.params;
+  const symbol = resolveYahooSymbol(req.params.symbol);
   const { period, period1, period2, interval } = req.query;
   
   try {
@@ -301,8 +341,9 @@ const getStockHistory = async (req, res) => {
     const quotes = parseChartResultToQuotes(result);
     res.json(quotes);
   } catch (error) {
-    console.error("Error fetching stock history for", symbol, error);
-    res.status(500).json({ message: "Failed to fetch stock history", error: error.message });
+    console.warn("Error fetching stock history for", symbol, error && error.message ? error.message : error);
+    // Return empty array to frontend to avoid breaking charts; errors are logged for debugging.
+    res.json([]);
   }
 };
 

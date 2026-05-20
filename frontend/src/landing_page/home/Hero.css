@@ -116,7 +116,7 @@
 
 .tradehero-chart {
   position: relative;
-  min-height: 220px;
+  min-height: 240px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   overflow: hidden;
@@ -131,11 +131,10 @@
 
 .tradehero-chart-line {
   position: absolute;
-  inset: 1.5rem 1.5rem auto auto;
-  width: calc(100% - 3rem);
-  height: calc(100% - 3rem);
+  inset: 1.1rem;
 }
 
+.tradehero-chart-line canvas,
 .tradehero-chart-line svg {
   width: 100%;
   height: 100%;
@@ -222,11 +221,16 @@
 
 .tradehero-card-small .chart-strip {
   margin-top: 1rem;
-  height: 5px;
+  height: 42px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(0,0,0,0.08) 0%, rgba(60,130,245,0.45) 100%);
   overflow: hidden;
   position: relative;
+}
+
+.tradehero-card-small .chart-strip.has-chart {
+  border-radius: 0;
+  background: transparent;
 }
 
 .tradehero-card-small .chart-strip::after {
@@ -237,6 +241,16 @@
   border-radius: inherit;
   background: rgba(255, 255, 255, 0.72);
   animation: stripPulse 2.2s ease-in-out infinite;
+}
+
+.tradehero-card-small .chart-strip.has-chart::after {
+  display: none;
+}
+
+.tradehero-card-small .chart-strip canvas,
+.tradehero-card-small .chart-strip svg {
+  width: 100%;
+  height: 100%;
 }
 
 .tradehero-info {
