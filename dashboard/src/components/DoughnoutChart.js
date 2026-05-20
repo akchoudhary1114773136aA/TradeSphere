@@ -9,13 +9,11 @@ export function DoughnutChart({ data }) {
     responsive: true,
     maintainAspectRatio: false,
 
-    // Smooth Animation
     animation: {
       duration: 800,
       easing: "easeOutQuart",
     },
 
-    // Smooth Hover Transition
     transitions: {
       active: {
         animation: {
@@ -27,7 +25,6 @@ export function DoughnutChart({ data }) {
     plugins: {
       legend: {
         position: "top",
-
         labels: {
           color: "#B6C2D1",
           padding: 16,
@@ -46,6 +43,21 @@ export function DoughnutChart({ data }) {
         borderColor: "#243147",
         borderWidth: 1,
         padding: 12,
+        callbacks: {
+          label: function (context) {
+            const chart = context.chart;
+            const dataset = context.dataset;
+
+            // Sum only visible segments
+            const total = dataset.data.reduce((acc, val, i) => {
+              return chart.getDataVisibility(i) ? acc + val : acc;
+            }, 0);
+
+            const value = context.parsed;
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+            return ` ${context.label}: ${value} (${percentage}%)`;
+          },
+        },
       },
     },
 
