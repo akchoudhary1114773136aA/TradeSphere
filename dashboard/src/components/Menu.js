@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { getMe, updateProfile } from "../api";
 
+const LANDING_URL = process.env.REACT_APP_LANDING_URL || "http://localhost:3000";
+
 const Menu = () => {
   const [selectedMenu, setSelectedMenu] = useState(0);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -57,9 +59,9 @@ const Menu = () => {
   const handleLogout = () => {
     localStorage.removeItem("stockly_token");
     try {
-      window.top.location.href = "http://localhost:3000/login?logout=true";
+      window.top.location.href = `${LANDING_URL}/login?logout=true`;
     } catch (e) {
-      window.location.href = "http://localhost:3000/login?logout=true";
+      window.location.href = `${LANDING_URL}/login?logout=true`;
     }
   };
 

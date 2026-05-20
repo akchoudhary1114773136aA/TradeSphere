@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
+const DASHBOARD_URL = process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,7 +20,7 @@ function Navbar() {
     closeMenu();
     const token = localStorage.getItem("stockly_token");
     if (token) {
-      window.location.href = `http://localhost:3001?token=${encodeURIComponent(token)}`;
+      window.location.href = `${DASHBOARD_URL}?token=${encodeURIComponent(token)}`;
     } else {
       navigate("/login");
     }
@@ -58,7 +59,7 @@ function Navbar() {
           ))}
           <li>
             <a
-              href="http://localhost:3001"
+              href={DASHBOARD_URL}
               className="navbar-link"
               onClick={handleDashboardClick}
             >

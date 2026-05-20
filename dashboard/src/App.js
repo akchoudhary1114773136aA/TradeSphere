@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Home from "./components/Home";
+const LANDING_URL = process.env.REACT_APP_LANDING_URL || "http://localhost:3000";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,9 +24,9 @@ const App = () => {
       localStorage.removeItem("stockly_token");
       // Redirect — use window.top for iframe contexts
       try {
-        window.top.location.href = "http://localhost:3000/login";
+        window.top.location.href = `${LANDING_URL}/login`;
       } catch (e) {
-        window.location.href = "http://localhost:3000/login";
+        window.location.href = `${LANDING_URL}/login`;
       }
     } else {
       setIsAuthenticated(true);

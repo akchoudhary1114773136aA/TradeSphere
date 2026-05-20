@@ -27,10 +27,15 @@ const { runSeed } = require("./seed");
 
 const app = express();
 
+const allowedOrigins = (process.env.CLIENT_ORIGINS || "http://localhost:3000,http://localhost:3001")
+  .split(",")
+  .map((origin) => origin.trim());
+
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"]
+  origin: allowedOrigins,
 }));
 app.use(bodyParser.json());
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/stocks", stockRoutes);

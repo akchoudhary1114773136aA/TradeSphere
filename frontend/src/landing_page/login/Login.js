@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../signup/Signup.css";
 
-const API_BASE_URL = "http://localhost:3002";
-
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3002";
+const DASHBOARD_URL = process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001";
 function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -57,7 +57,7 @@ function Login() {
       }
 
       localStorage.setItem("stockly_token", data.token);
-      window.location.href = `http://localhost:3001?token=${encodeURIComponent(data.token)}`;
+      window.location.href = `${DASHBOARD_URL}?token=${encodeURIComponent(data.token)}`;
     } catch (requestError) {
       setError(requestError.message);
     } finally {
