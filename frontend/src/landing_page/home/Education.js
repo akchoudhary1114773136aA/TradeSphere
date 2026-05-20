@@ -1,0 +1,59 @@
+import React from "react";
+
+function Education() {
+  return (
+    <section className="home-section home-education-section">
+      <div className="row align-items-center">
+
+        <div className="col-lg-6 text-center" data-aos="fade-up">
+          <img
+            className="content-image"
+            src="media/images/home-learning-lab.svg"
+            style={{ width: "86%" }}
+            alt="Market education illustration"
+          />
+        </div>
+
+        <div
+          className="col-lg-6"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
+          <h1 className="mb-3 fs-2">
+            Free and open market education
+          </h1>
+
+          <p>
+            Varsity, the largest online stock market education
+            book in the world covering everything from the
+            basics to advanced trading.
+          </p>
+
+          <a href="" style={{ textDecoration: "none" }}>
+            Varsity{" "}
+            <i
+              className="fa fa-long-arrow-right"
+              aria-hidden="true"
+            ></i>
+          </a>
+
+          <p className="mt-5">
+            TradingQ&A, the most active trading and investment
+            community in India for all your market related queries.
+          </p>
+
+          <a href="" style={{ textDecoration: "none" }}>
+            TradingQ&A{" "}
+            <i
+              className="fa fa-long-arrow-right"
+              aria-hidden="true"
+            ></i>
+          </a>
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+export default Education;

@@ -1,0 +1,363 @@
+.tradehero {
+  margin: 2rem auto 3.5rem;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+.tradehero-card {
+  background:
+    radial-gradient(circle at top right, rgba(18, 214, 167, 0.22), transparent 24rem),
+    linear-gradient(135deg, #14213f 0%, #24345d 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 28px;
+  color: #f8fbff;
+  padding: 2rem;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+
+.tradehero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tradehero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.tradehero-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #12d6a7, #63a7ff);
+  color: #061018;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.tradehero-live {
+  background: rgba(255, 255, 255, 0.17);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.tradehero-ranges {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.tradehero-range-btn {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: #edf4ff;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tradehero-range-btn:hover,
+.tradehero-range-btn.active {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(18, 214, 167, 0.65);
+  transform: translateY(-1px);
+}
+
+.tradehero-main {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 2.5rem;
+}
+
+.tradehero-label {
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.9;
+  margin-bottom: 0.75rem;
+}
+
+.tradehero-price {
+  font-size: 3.5rem;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.tradehero-change {
+  margin: 0.8rem 0 0.25rem;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.tradehero-change.negative {
+  color: var(--danger);
+}
+
+.tradehero-sub {
+  opacity: 0.8;
+  margin: 0;
+}
+
+.tradehero-chart {
+  position: relative;
+  min-height: 240px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.tradehero-chart::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 40%);
+}
+
+.tradehero-chart-line {
+  position: absolute;
+  inset: 1.1rem;
+}
+
+.tradehero-chart-line canvas,
+.tradehero-chart-line svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tradehero-chart-line path {
+  stroke-dasharray: 620;
+  stroke-dashoffset: 620;
+  animation: drawLine 1s ease forwards;
+}
+
+.tradehero-chart-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.tradehero-chart-legend span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.tradehero-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.75rem;
+}
+
+.tradehero-card-small {
+  background: rgba(16, 29, 52, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 20px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  color: var(--text);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+}
+
+.tradehero-card-small:hover,
+.tradehero-card-small:focus {
+  transform: translateY(-8px);
+  border-color: rgba(18, 214, 167, 0.46);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  outline: none;
+}
+
+.tradehero-card-small.selected {
+  background:
+    linear-gradient(135deg, rgba(18, 214, 167, 0.16), rgba(99, 167, 255, 0.10)),
+    rgba(16, 29, 52, 0.96);
+  border-color: rgba(18, 214, 167, 0.62);
+}
+
+.tradehero-card-small .card-title {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.tradehero-card-small .card-value {
+  margin: 0.7rem 0 0.25rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.tradehero-card-small .card-change {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.tradehero-card-small.negative .card-change {
+  color: var(--danger);
+}
+
+.tradehero-card-small .chart-strip {
+  margin-top: 1rem;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.08) 0%, rgba(60,130,245,0.45) 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+.tradehero-card-small .chart-strip.has-chart {
+  border-radius: 0;
+  background: transparent;
+}
+
+.tradehero-card-small .chart-strip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.72);
+  animation: stripPulse 2.2s ease-in-out infinite;
+}
+
+.tradehero-card-small .chart-strip.has-chart::after {
+  display: none;
+}
+
+.tradehero-card-small .chart-strip canvas,
+.tradehero-card-small .chart-strip svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tradehero-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.tradehero-info-card {
+  background: rgba(16, 29, 52, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  padding: 1.3rem;
+  color: var(--text);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tradehero-info-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(99, 167, 255, 0.34);
+}
+
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes stripPulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  55%,
+  100% {
+    transform: translateX(230%);
+  }
+}
+
+@keyframes heroGlow {
+  from {
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
+  }
+  to {
+    box-shadow: 0 30px 70px rgba(18, 214, 167, 0.12), 0 26px 60px rgba(0, 0, 0, 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tradehero-card,
+  .tradehero-chart-line path,
+  .tradehero-card-small .chart-strip::after {
+    animation: none;
+  }
+
+  .tradehero-card-small:hover,
+  .tradehero-card-small:focus,
+  .tradehero-info-card:hover {
+    transform: none;
+  }
+}
+
+.tradehero-info-card .info-label {
+  margin: 0;
+  opacity: 0.7;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+}
+
+.tradehero-info-card .info-value {
+  margin: 0.5rem 0 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.tradehero-info-card .info-note {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  opacity: 0.72;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 992px) {
+  .tradehero-main {
+    grid-template-columns: 1fr;
+  }
+  .tradehero-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tradehero-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .tradehero-card {
+    padding: 1.4rem;
+  }
+  .tradehero-grid {
+    grid-template-columns: 1fr;
+  }
+  .tradehero-header,
+  .tradehero-ranges {
+    justify-content: center;
+  }
+  .tradehero-range-btn {
+    padding: 0.65rem 0.9rem;
+  }
+}
