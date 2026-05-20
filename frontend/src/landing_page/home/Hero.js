@@ -447,8 +447,6 @@ function Hero() {
               className={`tradehero-card-small ${market.trend === "negative" ? "negative" : ""} ${
                 activeMarket.symbol === market.symbol ? "selected" : ""
               }`}
-              data-aos="fade-up"
-              data-aos-delay={(index + 1) * 100}
               key={market.symbol}
               onClick={() => setActiveSymbol(market.symbol)}
               type="button"
