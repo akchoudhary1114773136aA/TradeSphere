@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from "react";
 import "./Hero.css";
 import { apiRequest } from "../../config/api";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const ranges = ["1D", "6M", "1Y", "5Y"];
 
@@ -50,6 +64,14 @@ const defaultMarkets = [
 ];
 
 const stripSuffix = (symbol) => (symbol ? symbol.replace(/\.(NS|BO)$/i, "") : symbol);
+
+const YAHOO_SYMBOL_MAP = {
+  "NIFTY 50": "^NSEI",
+  RELIANCE: "RELIANCE.NS",
+  TCS: "TCS.NS",
+  "HDFC BANK": "HDFCBANK.NS",
+  INFOSYS: "INFY.NS",
+};
 
 const toDisplayPrice = (num) => {
   if (num == null || isNaN(num)) return "—";
@@ -166,33 +188,30 @@ function Hero() {
                 pe: q.trailingPE || q.forwardPE || null,
               });
           } else {
-            // fallback to static
+            // fallback to static but include a Yahoo rawSymbol where possible so history requests work
             const fallback = defaultMarkets.find((m) => m.symbol.replace(/\s+/g, "").toUpperCase() === normalize(t));
-            if (fallback) newMarkets.push(fallback);
+            if (fallback) {
+              const mappedRaw = YAHOO_SYMBOL_MAP[fallback.symbol] || fallback.rawSymbol || fallback.symbol;
+              newMarkets.push({ ...fallback, rawSymbol: mappedRaw });
+            }
           }
         });
 
-        setMarkets(newMarkets);
-
-        // fetch 1M history for each market to generate sparkline paths
-        const fetchHistories = async () => {
-          await Promise.all(
-            newMarkets.map(async (m) => {
-              const sym = m.rawSymbol || m.symbol;
-              if (!sym) return;
-              try {
-                const res = await apiRequest(`/api/stocks/history/${encodeURIComponent(sym)}?period=1M`);
-                if (!mounted || !Array.isArray(res) || res.length === 0) return;
-                const path = buildPathFromHistory(res, 360, 200, 12);
-                setMarkets((prev) => prev.map((itm) => (itm.symbol === m.symbol ? { ...itm, path } : itm)));
-              } catch (e) {
-                // ignore individual history errors
-              }
-            })
-          );
-        };
-
-        fetchHistories();
+        // merge with previous markets to preserve history and rawSymbol where possible
+        setMarkets((prev) => {
+          const prevMap = new Map((prev || []).map((p) => [p.symbol, p]));
+          const merged = newMarkets.map((nm) => {
+            const prevItem = prevMap.get(nm.symbol);
+            if (!prevItem) return nm;
+            return {
+              ...nm,
+              history: nm.history || prevItem.history,
+              historyPeriod: nm.historyPeriod || prevItem.historyPeriod,
+              rawSymbol: nm.rawSymbol || prevItem.rawSymbol,
+            };
+          });
+          return merged;
+        });
 
         // if active market was set previously, refresh it with updated object
         setActiveMarket((prev) => {
@@ -214,6 +233,65 @@ function Hero() {
       clearInterval(interval);
     };
   }, []);
+
+  // Fetch history for each market when markets list changes or selected range changes
+  useEffect(() => {
+    let mounted = true;
+    const periodParam = activeRange;
+
+    const fetchHistoriesForRange = async () => {
+      if (!markets || markets.length === 0) return;
+      await Promise.all(
+        markets.map(async (m) => {
+          const sym = m.rawSymbol || m.symbol;
+          if (!sym) return;
+          // skip if we already have history for this period
+          if (m.historyPeriod === periodParam) return;
+          try {
+            const res = await apiRequest(`/api/stocks/history/${encodeURIComponent(sym)}?period=${encodeURIComponent(periodParam)}`);
+            if (!mounted || !Array.isArray(res)) return;
+            setMarkets((prev) => prev.map((itm) => (itm.symbol === m.symbol ? { ...itm, history: res, historyPeriod: periodParam } : itm)));
+          } catch (e) {
+            // ignore individual history errors
+          }
+        })
+      );
+    };
+
+    fetchHistoriesForRange();
+
+    return () => {
+      mounted = false;
+    };
+  }, [activeRange, markets]);
+
+  // Prepare chart data/options for hero using the active market history
+  const heroHistory = activeMarket?.history || [];
+  const heroChartData = {
+    labels: heroHistory.map((item) => {
+      const d = new Date(item.date);
+      return `${d.getDate()} ${d.toLocaleString("default", { month: "short" })}`;
+    }),
+    datasets: [
+      {
+        label: "Close Price",
+        data: heroHistory.map((item) => item.close),
+        borderColor: activeMarket?.trend === "negative" ? "rgba(255,92,122,1)" : "rgba(18,214,167,1)",
+        backgroundColor: activeMarket?.trend === "negative" ? "rgba(255,92,122,0.06)" : "rgba(18,214,167,0.06)",
+        borderWidth: 2,
+        fill: true,
+        pointRadius: 0,
+        tension: 0.2,
+      },
+    ],
+  };
+
+  const heroChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+    scales: { x: { grid: { display: false } }, y: { grid: { color: "rgba(255,255,255,0.05)" } } },
+  };
 
   return (
     <section className="tradehero">
@@ -262,15 +340,19 @@ function Hero() {
 
           <div className="tradehero-chart">
             <div className="tradehero-chart-line">
-              <svg viewBox="0 0 360 200" preserveAspectRatio="none">
-                <path
-                  d={chartPath}
-                  fill="none"
-                  stroke="rgba(255,255,255,0.95)"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                />
-              </svg>
+              {heroHistory.length > 0 ? (
+                <Line data={heroChartData} options={heroChartOptions} height={180} />
+              ) : (
+                <svg viewBox="0 0 360 200" preserveAspectRatio="none">
+                  <path
+                    d={chartPath}
+                    fill="none"
+                    stroke="rgba(255,255,255,0.95)"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
             </div>
           </div>
 
@@ -305,15 +387,46 @@ function Hero() {
             <p className="card-value">{market.price}</p>
             <p className="card-change">{market.change}</p>
             <div className="chart-strip">
-              <svg viewBox="0 0 360 200" preserveAspectRatio="none">
-                <path
-                  d={market.path || defaultMarkets[0].path}
-                  fill="none"
-                  stroke={market.trend === "negative" ? "rgba(255,92,122,0.9)" : "rgba(18,214,167,0.9)"}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
+              {market.history && market.history.length > 0 ? (
+                (() => {
+                  const labels = market.history.map((item) => {
+                    const d = new Date(item.date);
+                    return `${d.getDate()} ${d.toLocaleString("default", { month: "short" })}`;
+                  });
+                  const data = {
+                    labels,
+                    datasets: [
+                      {
+                        data: market.history.map((h) => h.close),
+                        borderColor: market.trend === "negative" ? "rgba(255,92,122,0.95)" : "rgba(18,214,167,0.95)",
+                        backgroundColor: "transparent",
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.2,
+                        fill: false,
+                      },
+                    ],
+                  };
+                  const opts = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: { x: { display: false }, y: { display: false } },
+                    elements: { line: { borderCapStyle: "round" } },
+                  };
+                  return <Line data={data} options={opts} height={60} />;
+                })()
+              ) : (
+                <svg viewBox="0 0 360 200" preserveAspectRatio="none">
+                  <path
+                    d={market.path || defaultMarkets[0].path}
+                    fill="none"
+                    stroke={market.trend === "negative" ? "rgba(255,92,122,0.9)" : "rgba(18,214,167,0.9)"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
             </div>
           </button>
         ))}

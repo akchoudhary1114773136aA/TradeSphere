@@ -101,6 +101,60 @@ const getMarketWatch = async (req, res) => {
   }
 };
 
+// Normalize various Yahoo chart responses into [{ date: ISOString, close: Number }, ...]
+const parseChartResultToQuotes = (chartResult) => {
+  if (!chartResult) return [];
+
+  // If the wrapper already provided a 'quotes' array, use it.
+  if (Array.isArray(chartResult.quotes) && chartResult.quotes.length > 0) {
+    return chartResult.quotes
+      .map((q) => {
+        let date = q.date;
+        if (typeof date === 'number') date = new Date(date).toISOString();
+        else if (typeof date === 'string') date = new Date(date).toISOString();
+        else if (q.timestamp) date = new Date(q.timestamp * 1000).toISOString();
+        return { date, close: q.close ?? q.adjClose ?? q.close };
+      })
+      .filter((q) => q.close != null);
+  }
+
+  // The raw yahoo-finance2 structure: chart.result[0].timestamp + indicators.quote[0].close
+  if (chartResult.chart && Array.isArray(chartResult.chart.result) && chartResult.chart.result.length > 0) {
+    const r = chartResult.chart.result[0];
+    const ts = r.timestamp || [];
+    const quote = r.indicators && r.indicators.quote && r.indicators.quote[0];
+    const adj = r.indicators && r.indicators.adjclose && r.indicators.adjclose[0];
+    if (Array.isArray(ts) && ts.length > 0) {
+      const out = ts
+        .map((t, i) => {
+          let close = null;
+          if (quote && Array.isArray(quote.close)) close = quote.close[i];
+          if ((close == null || isNaN(close)) && adj && Array.isArray(adj.adjclose)) close = adj.adjclose[i];
+          return { date: new Date(t * 1000).toISOString(), close };
+        })
+        .filter((x) => x.close != null);
+      return out;
+    }
+  }
+
+  // Some responses expose timestamp + indicators at top level
+  if (Array.isArray(chartResult.timestamp) && chartResult.indicators) {
+    const ts = chartResult.timestamp;
+    const quote = chartResult.indicators.quote && chartResult.indicators.quote[0];
+    const adj = chartResult.indicators.adjclose && chartResult.indicators.adjclose[0];
+    if (Array.isArray(ts) && ts.length > 0) {
+      return ts
+        .map((t, i) => {
+          let close = quote && Array.isArray(quote.close) ? quote.close[i] : (adj && Array.isArray(adj.adjclose) ? adj.adjclose[i] : null);
+          return { date: new Date(t * 1000).toISOString(), close };
+        })
+        .filter((x) => x.close != null);
+    }
+  }
+
+  return [];
+};
+
 const fetchChartWithFallback = async (symbol, queryOptions) => {
   const cacheKey = `${symbol}|${JSON.stringify(queryOptions || {})}`;
   try {
@@ -110,33 +164,75 @@ const fetchChartWithFallback = async (symbol, queryOptions) => {
     }
   } catch (e) {}
 
-  try {
-    let result = await yahooFinance.chart(symbol, queryOptions);
-    if (!result || !result.quotes || result.quotes.length === 0) {
-      if (symbol.endsWith('.NS')) {
-        const fallbackSymbol = symbol.replace('.NS', '.BO');
-        const fallbackResult = await yahooFinance.chart(fallbackSymbol, queryOptions);
-        if (fallbackResult && fallbackResult.quotes && fallbackResult.quotes.length > 0) {
-          try { historyCache.set(cacheKey, { ts: Date.now(), data: fallbackResult }); } catch (e) {}
-          return fallbackResult;
+  const tried = [];
+
+  // Build a list of sensible candidate symbols to try.
+  const buildCandidates = (sym) => {
+    if (!sym) return [];
+    const s = String(sym).trim();
+    const out = [];
+
+    // always try the raw symbol first
+    out.push(s);
+
+    // if it's an index symbol (starts with ^), don't append .NS/.BO
+    if (s.startsWith('^')) {
+      return [...new Set(out)];
+    }
+
+    // remove known suffixes
+    const base = s.replace(/\.(NS|BO)$/i, '');
+    if (base && !out.includes(base)) out.push(base);
+    if (!base.toUpperCase().endsWith('.NS')) out.push(`${base}.NS`);
+    if (!base.toUpperCase().endsWith('.BO')) out.push(`${base}.BO`);
+
+    // Try to match known market watch stocks by name or base symbol
+    try {
+      const lookup = MARKET_WATCH_STOCKS.find((stock) => {
+        const stockBase = (stock.symbol || '').replace(/\.(NS|BO)$/i, '');
+        if (stockBase.toUpperCase() === base.toUpperCase()) return true;
+        if ((stock.name || '').replace(/\s+/g, '').toUpperCase() === base.replace(/\s+/g, '').toUpperCase()) return true;
+        return false;
+      });
+      if (lookup && lookup.symbol && !out.includes(lookup.symbol)) out.push(lookup.symbol);
+    } catch (e) {}
+
+    return [...new Set(out)];
+  };
+
+  const uniq = buildCandidates(symbol);
+
+  let lastError = null;
+  for (const cand of uniq) {
+    tried.push(cand);
+    try {
+      const result = await yahooFinance.chart(cand, queryOptions);
+      const quotes = parseChartResultToQuotes(result);
+      if (quotes && quotes.length > 0) {
+        try { historyCache.set(cacheKey, { ts: Date.now(), data: result }); } catch (e) {}
+        return result;
+      }
+      // no usable quotes, continue
+    } catch (err) {
+      // Sometimes yahoo-finance2 throws a FailedYahooValidationError but includes a partial `result` object
+      if (err && err.result) {
+        try {
+          const parsed = parseChartResultToQuotes(err.result);
+          if (parsed && parsed.length > 0) {
+            try { historyCache.set(cacheKey, { ts: Date.now(), data: err.result }); } catch (e) {}
+            return err.result;
+          }
+        } catch (e) {
+          // fallthrough to record error
         }
       }
+      lastError = err;
+      // try next candidate
     }
-    try { historyCache.set(cacheKey, { ts: Date.now(), data: result }); } catch (e) {}
-    return result;
-  } catch (error) {
-    if (symbol.endsWith('.NS')) {
-      try {
-        const fallbackSymbol = symbol.replace('.NS', '.BO');
-        const res = await yahooFinance.chart(fallbackSymbol, queryOptions);
-        try { historyCache.set(cacheKey, { ts: Date.now(), data: res }); } catch (e) {}
-        return res;
-      } catch (fallbackError) {
-        throw error;
-      }
-    }
-    throw error;
   }
+
+  if (lastError) throw lastError;
+  throw new Error(`No data found for symbol: ${symbol} (tried: ${tried.join(',')})`);
 };
 
 const getStockHistory = async (req, res) => {
@@ -151,27 +247,59 @@ const getStockHistory = async (req, res) => {
     if (period) {
       const now = new Date();
       let startDate = new Date();
-      if (period === '1W') {
-        startDate.setDate(now.getDate() - 7);
-      } else if (period === '1M') {
-        startDate.setMonth(now.getMonth() - 1);
-      } else if (period === '3M') {
-        startDate.setMonth(now.getMonth() - 3);
-      } else if (period === '1Y') {
-        startDate.setFullYear(now.getFullYear() - 1);
+      // Support a wider set of period values for landing timelines
+      // and pick an appropriate interval for the Yahoo chart API.
+      switch ((period || '').toUpperCase()) {
+        case '1D':
+          startDate.setDate(now.getDate() - 1);
+          queryOptions.interval = '5m';
+          break;
+        case '2D':
+          startDate.setDate(now.getDate() - 2);
+          queryOptions.interval = '15m';
+          break;
+        case '1W':
+          startDate.setDate(now.getDate() - 7);
+          queryOptions.interval = '30m';
+          break;
+        case '1M':
+          startDate.setMonth(now.getMonth() - 1);
+          queryOptions.interval = '1d';
+          break;
+        case '3M':
+          startDate.setMonth(now.getMonth() - 3);
+          queryOptions.interval = '1d';
+          break;
+        case '6M':
+          startDate.setMonth(now.getMonth() - 6);
+          queryOptions.interval = '1d';
+          break;
+        case '1Y':
+          startDate.setFullYear(now.getFullYear() - 1);
+          queryOptions.interval = '1d';
+          break;
+        case '5Y':
+          startDate.setFullYear(now.getFullYear() - 5);
+          queryOptions.interval = '1wk';
+          break;
+        default:
+          // fallback to 1 month
+          startDate.setMonth(now.getMonth() - 1);
+          queryOptions.interval = '1d';
       }
-      queryOptions.period1 = startDate.toISOString().split('T')[0];
+
+      queryOptions.period1 = Math.floor(startDate.getTime() / 1000);
+      queryOptions.period2 = Math.floor(now.getTime() / 1000);
     } else {
-      queryOptions.period1 = period1 || '2024-01-01'; // Default
+      // Accept explicit period1/period2 if provided, otherwise default to Jan 1 2024
+      queryOptions.period1 = period1 ? Math.floor(new Date(period1).getTime() / 1000) : Math.floor(new Date('2024-01-01').getTime() / 1000);
+      if (period2) queryOptions.period2 = Math.floor(new Date(period2).getTime() / 1000);
     }
     
-    if (period2) {
-      queryOptions.period2 = period2;
-    }
     
     const result = await fetchChartWithFallback(symbol, queryOptions);
-    
-    res.json(result.quotes || []);
+    const quotes = parseChartResultToQuotes(result);
+    res.json(quotes);
   } catch (error) {
     console.error("Error fetching stock history for", symbol, error);
     res.status(500).json({ message: "Failed to fetch stock history", error: error.message });
